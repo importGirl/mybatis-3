@@ -1,26 +1,25 @@
 /**
- *    Copyright 2009-2019 the original author or authors.
- *
- *    Licensed under the Apache License, Version 2.0 (the "License");
- *    you may not use this file except in compliance with the License.
- *    You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *    Unless required by applicable law or agreed to in writing, software
- *    distributed under the License is distributed on an "AS IS" BASIS,
- *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *    See the License for the specific language governing permissions and
- *    limitations under the License.
+ * Copyright 2009-2019 the original author or authors.
+ * <p>
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package org.apache.ibatis.parsing;
 
-import java.io.InputStream;
-import java.io.Reader;
-import java.io.StringReader;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Properties;
+import org.apache.ibatis.builder.BuilderException;
+import org.w3c.dom.Document;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.xml.sax.*;
 
 import javax.xml.namespace.QName;
 import javax.xml.parsers.DocumentBuilder;
@@ -28,16 +27,12 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathFactory;
-
-import org.apache.ibatis.builder.BuilderException;
-import org.w3c.dom.Document;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-import org.xml.sax.EntityResolver;
-import org.xml.sax.ErrorHandler;
-import org.xml.sax.InputSource;
-import org.xml.sax.SAXException;
-import org.xml.sax.SAXParseException;
+import java.io.InputStream;
+import java.io.Reader;
+import java.io.StringReader;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Properties;
 
 /**
  * @author Clinton Begin
@@ -45,10 +40,25 @@ import org.xml.sax.SAXParseException;
  */
 public class XPathParser {
 
+  /**
+   * Xml document对象
+   */
   private final Document document;
+  /**
+   * 是否校验xml， 一般为 true
+   */
   private boolean validation;
+  /**
+   * xml 实体解析器：本地 DTD 文件， 避免要联网下载
+   */
   private EntityResolver entityResolver;
+  /**
+   * 变量 properties 对象； 用来替换需要动态配置的属性值； mybatis-config.xml
+   */
   private Properties variables;
+  /**
+   * Java xpath对象
+   */
   private XPath xpath;
 
   public XPathParser(String xml) {
@@ -111,6 +121,17 @@ public class XPathParser {
     this.document = document;
   }
 
+  /**
+   * @Description: 构造器
+   * @param xml xml地址
+   * @param validation 是否验证
+   * @param variables 变量 properties 对象
+   * @param entityResolver xml 解析器对象
+   *
+   * @return
+   * @author Max.Wang
+   * @date 2019-05-05 23:06
+   */
   public XPathParser(String xml, boolean validation, Properties variables, EntityResolver entityResolver) {
     commonConstructor(validation, variables, entityResolver);
     this.document = createDocument(new InputSource(new StringReader(xml)));
@@ -140,7 +161,9 @@ public class XPathParser {
   }
 
   public String evalString(Object root, String expression) {
+    // 获得值
     String result = (String) evaluate(expression, root, XPathConstants.STRING);
+    // 基于 variables 替换动态值，如果 result 为动态值
     result = PropertyParser.parse(result, variables);
     return result;
   }
@@ -197,9 +220,18 @@ public class XPathParser {
     return evalNodes(document, expression);
   }
 
+  /**
+   * @Description: 获得node数组
+   * @param
+   * @return
+   * @author Max.Wang
+   * @date 2019-05-05 23:27
+   */
   public List<XNode> evalNodes(Object root, String expression) {
     List<XNode> xnodes = new ArrayList<>();
+    // 获得 node 数组
     NodeList nodes = (NodeList) evaluate(expression, root, XPathConstants.NODESET);
+
     for (int i = 0; i < nodes.getLength(); i++) {
       xnodes.add(new XNode(this, nodes.item(i), variables));
     }
@@ -218,6 +250,15 @@ public class XPathParser {
     return new XNode(this, node, variables);
   }
 
+  /**
+   * @Description: 获得指定元素或节点的值
+   * @param expression  表达式
+   * @param root        指定节点
+   * @param returnType  返回类型
+   * @return
+   * @author Max.Wang
+   * @date 2019-05-05 23:19
+   */
   private Object evaluate(String expression, Object root, QName returnType) {
     try {
       return xpath.evaluate(expression, root, returnType);
@@ -226,11 +267,19 @@ public class XPathParser {
     }
   }
 
+  /**
+   * @Description: 创建 Document 对象
+   * @param inputSource xml的 inputsource 对象
+   * @return
+   * @author Max.Wang
+   * @date 2019-05-05 23:13
+   */
   private Document createDocument(InputSource inputSource) {
     // important: this must only be called AFTER common constructor
     try {
+      // 创建 DocumentBuilderFactory 对象
       DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-      factory.setValidating(validation);
+      factory.setValidating(validation);// 设置是否验证xml
 
       factory.setNamespaceAware(false);
       factory.setIgnoringComments(true);
@@ -238,9 +287,10 @@ public class XPathParser {
       factory.setCoalescing(false);
       factory.setExpandEntityReferences(true);
 
+      // 创建 DocumentBuilder 对象
       DocumentBuilder builder = factory.newDocumentBuilder();
-      builder.setEntityResolver(entityResolver);
-      builder.setErrorHandler(new ErrorHandler() {
+      builder.setEntityResolver(entityResolver);// 设置实体解析器
+      builder.setErrorHandler(new ErrorHandler() {// 空实现，直接抛出异常
         @Override
         public void error(SAXParseException exception) throws SAXException {
           throw exception;
@@ -255,6 +305,8 @@ public class XPathParser {
         public void warning(SAXParseException exception) throws SAXException {
         }
       });
+
+      // 解析 xml 文件
       return builder.parse(inputSource);
     } catch (Exception e) {
       throw new BuilderException("Error creating document instance.  Cause: " + e, e);

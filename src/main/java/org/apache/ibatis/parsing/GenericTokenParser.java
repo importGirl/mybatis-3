@@ -35,20 +35,26 @@ public class GenericTokenParser {
       return "";
     }
     // search open token
+    // 寻找开始到open token 到位置
     int start = text.indexOf(openToken);
-    if (start == -1) {
+    if (start == -1) {// 没有。直接返回
       return text;
     }
     char[] src = text.toCharArray();
     int offset = 0;
     final StringBuilder builder = new StringBuilder();
     StringBuilder expression = null;
+    // 循环匹配
     while (start > -1) {
+      // 转义字符 因为opentoken 前面一个位置是 \转义字符，所要要忽略 \
       if (start > 0 && src[start - 1] == '\\') {
         // this open token is escaped. remove the backslash and continue.
         builder.append(src, offset, start - offset - 1).append(openToken);
         offset = start + openToken.length();
-      } else {
+
+      }
+      // 非转义字符
+      else {
         // found open token. let's search close token.
         if (expression == null) {
           expression = new StringBuilder();
@@ -81,6 +87,7 @@ public class GenericTokenParser {
       }
       start = text.indexOf(openToken, offset);
     }
+    // 拼接剩余部分
     if (offset < src.length) {
       builder.append(src, offset, src.length - offset);
     }

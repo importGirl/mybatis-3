@@ -43,7 +43,13 @@ public class PropertyParser {
    */
   public static final String KEY_DEFAULT_VALUE_SEPARATOR = KEY_PREFIX + "default-value-separator";
 
+  /**
+   * 是否开启默认值
+   */
   private static final String ENABLE_DEFAULT_VALUE = "false";
+  /**
+   * 默认的分隔符
+   */
   private static final String DEFAULT_VALUE_SEPARATOR = ":";
 
   private PropertyParser() {
@@ -75,21 +81,26 @@ public class PropertyParser {
     public String handleToken(String content) {
       if (variables != null) {
         String key = content;
+        // 开启默认值功能
         if (enableDefaultValue) {
+          // 查找默认值分隔符 ：
           final int separatorIndex = content.indexOf(defaultValueSeparator);
           String defaultValue = null;
           if (separatorIndex >= 0) {
             key = content.substring(0, separatorIndex);
             defaultValue = content.substring(separatorIndex + defaultValueSeparator.length());
           }
+          // 有默认值优先替换
           if (defaultValue != null) {
             return variables.getProperty(key, defaultValue);
           }
         }
+        // 未开启默认值，直接替换
         if (variables.containsKey(key)) {
           return variables.getProperty(key);
         }
       }
+      // 无 variables，直接返回
       return "${" + content + "}";
     }
   }

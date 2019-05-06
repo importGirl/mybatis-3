@@ -22,12 +22,16 @@
 
 <configuration>
 
+  <properties>
+    <property name="org.apache.ibatis.parsing.PropertyParser.enable-default-value" value="true"></property>
+  </properties>
+
     <!-- autoMappingBehavior should be set in each test case -->
 
     <environments default="development">
         <environment id="development">
             <transactionManager type="JDBC">
-                <property name="" value=""/>
+                <property name="baseLocation" value="${mapper.base-locations}"/>
             </transactionManager>
             <dataSource type="UNPOOLED">
                 <property name="driver" value="org.hsqldb.jdbcDriver"/>
