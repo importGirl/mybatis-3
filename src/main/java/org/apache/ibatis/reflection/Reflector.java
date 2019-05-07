@@ -140,6 +140,7 @@ public class Reflector {
                 "Illegal overloaded getter method with ambiguous type for property "
                     + propName + " in class " + winner.getDeclaringClass()
                     + ". This breaks the JavaBeans specification and can cause unpredictable results.");
+            // 如果有 get 和 is 的获取属性值方法， 则选择 is的方法
           } else if (candidate.getName().startsWith("is")) {
             winner = candidate;
           }

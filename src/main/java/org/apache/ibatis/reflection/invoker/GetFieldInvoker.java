@@ -15,9 +15,9 @@
  */
 package org.apache.ibatis.reflection.invoker;
 
-import java.lang.reflect.Field;
-
 import org.apache.ibatis.reflection.Reflector;
+
+import java.lang.reflect.Field;
 
 /**
  * @author Clinton Begin
@@ -29,13 +29,20 @@ public class GetFieldInvoker implements Invoker {
     this.field = field;
   }
 
+  /**
+   * 获得属性
+   * @param target 目标
+   * @param args   参数
+   * @return
+   * @throws IllegalAccessException
+   */
   @Override
   public Object invoke(Object target, Object[] args) throws IllegalAccessException {
     try {
-      return field.get(target);
+      return field.get(target);// 返回此字段都值
     } catch (IllegalAccessException e) {
-      if (Reflector.canControlMemberAccessible()) {
-        field.setAccessible(true);
+      if (Reflector.canControlMemberAccessible()) {// 判断字段是否可访问
+        field.setAccessible(true);// 设置为true, 对象访问时应该取消访问检查
         return field.get(target);
       } else {
         throw e;

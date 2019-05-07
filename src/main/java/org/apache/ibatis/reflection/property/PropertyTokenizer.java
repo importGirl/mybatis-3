@@ -18,15 +18,17 @@ package org.apache.ibatis.reflection.property;
 import java.util.Iterator;
 
 /**
+ * 属性分词器
  * @author Clinton Begin
  */
 public class PropertyTokenizer implements Iterator<PropertyTokenizer> {
-  private String name;
-  private final String indexedName;
-  private String index;
-  private final String children;
+  private String name;                // 当前字符串
+  private final String indexedName;   // 索引
+  private String index;               // 编号
+  private final String children;      // 剩余字符串
 
   public PropertyTokenizer(String fullname) {
+    // 使用 . 作为分隔
     int delim = fullname.indexOf('.');
     if (delim > -1) {
       name = fullname.substring(0, delim);
@@ -35,7 +37,9 @@ public class PropertyTokenizer implements Iterator<PropertyTokenizer> {
       name = fullname;
       children = null;
     }
+    // 记录当前 name
     indexedName = name;
+    // 若存在 [ ，则获得index, 并修改 name n   item[0]、 map[key] 情况
     delim = name.indexOf('[');
     if (delim > -1) {
       index = name.substring(delim + 1, name.length() - 1);

@@ -15,11 +15,12 @@
  */
 package org.apache.ibatis.reflection.property;
 
-import java.lang.reflect.Field;
-
 import org.apache.ibatis.reflection.Reflector;
 
+import java.lang.reflect.Field;
+
 /**
+ * 属性复制器
  * @author Clinton Begin
  */
 public final class PropertyCopier {
@@ -35,9 +36,12 @@ public final class PropertyCopier {
       for (Field field : fields) {
         try {
           try {
+            // 属性复制
             field.set(destinationBean, field.get(sourceBean));
           } catch (IllegalAccessException e) {
+            // 不可访问时，设置为可访问
             if (Reflector.canControlMemberAccessible()) {
+              // accessible 并非是访问权限而是对该自己执行安全检查
               field.setAccessible(true);
               field.set(destinationBean, field.get(sourceBean));
             } else {
@@ -48,6 +52,7 @@ public final class PropertyCopier {
           // Nothing useful to do, will only fail on final fields, which will be ignored.
         }
       }
+      // 递归父类
       parent = parent.getSuperclass();
     }
   }

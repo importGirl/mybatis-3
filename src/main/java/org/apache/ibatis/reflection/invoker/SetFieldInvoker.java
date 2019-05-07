@@ -15,9 +15,9 @@
  */
 package org.apache.ibatis.reflection.invoker;
 
-import java.lang.reflect.Field;
-
 import org.apache.ibatis.reflection.Reflector;
+
+import java.lang.reflect.Field;
 
 /**
  * @author Clinton Begin
@@ -32,7 +32,7 @@ public class SetFieldInvoker implements Invoker {
   @Override
   public Object invoke(Object target, Object[] args) throws IllegalAccessException {
     try {
-      field.set(target, args[0]);
+      field.set(target, args[0]);// 设置字段都值
     } catch (IllegalAccessException e) {
       if (Reflector.canControlMemberAccessible()) {
         field.setAccessible(true);

@@ -15,11 +15,12 @@
  */
 package org.apache.ibatis.reflection.property;
 
-import java.util.Locale;
-
 import org.apache.ibatis.reflection.ReflectionException;
 
+import java.util.Locale;
+
 /**
+ * 属性名相关工具类
  * @author Clinton Begin
  */
 public final class PropertyNamer {
@@ -28,6 +29,11 @@ public final class PropertyNamer {
     // Prevent Instantiation of Static Class
   }
 
+  /**
+   * 传入方法名， 获取对应属性名称
+   * @param name
+   * @return
+   */
   public static String methodToProperty(String name) {
     if (name.startsWith("is")) {
       name = name.substring(2);
