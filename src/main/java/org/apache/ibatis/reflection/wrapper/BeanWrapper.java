@@ -15,18 +15,16 @@
  */
 package org.apache.ibatis.reflection.wrapper;
 
-import java.util.List;
-
-import org.apache.ibatis.reflection.ExceptionUtil;
-import org.apache.ibatis.reflection.MetaClass;
-import org.apache.ibatis.reflection.MetaObject;
-import org.apache.ibatis.reflection.ReflectionException;
-import org.apache.ibatis.reflection.SystemMetaObject;
+import org.apache.ibatis.reflection.*;
 import org.apache.ibatis.reflection.factory.ObjectFactory;
 import org.apache.ibatis.reflection.invoker.Invoker;
 import org.apache.ibatis.reflection.property.PropertyTokenizer;
 
+import java.util.List;
+
 /**
+ * 普通对象的包装器；例如：User、Order这样的 POJO 对象
+ *
  * @author Clinton Begin
  */
 public class BeanWrapper extends BaseWrapper {
@@ -40,16 +38,27 @@ public class BeanWrapper extends BaseWrapper {
     this.metaClass = MetaClass.forClass(object.getClass(), metaObject.getReflectorFactory());
   }
 
+
+  /**
+   * 获得属性值， 包括 richList[0]
+   * @param prop
+   * @return
+   */
   @Override
   public Object get(PropertyTokenizer prop) {
     if (prop.getIndex() != null) {
       Object collection = resolveCollection(prop, object);
-      return getCollectionValue(prop, collection);
+      return getCollectionValue(prop, collection);// 获得集合元素值
     } else {
-      return getBeanProperty(prop, object);
+      return getBeanProperty(prop, object);// 获得属性值，就是调用getter 方法
     }
   }
 
+  /**
+   * 设置属性值
+   * @param prop
+   * @param value
+   */
   @Override
   public void set(PropertyTokenizer prop, Object value) {
     if (prop.getIndex() != null) {
@@ -75,6 +84,11 @@ public class BeanWrapper extends BaseWrapper {
     return metaClass.getSetterNames();
   }
 
+  /**
+   * 获得 set 元素类型
+   * @param name
+   * @return
+   */
   @Override
   public Class<?> getSetterType(String name) {
     PropertyTokenizer prop = new PropertyTokenizer(name);
@@ -90,6 +104,11 @@ public class BeanWrapper extends BaseWrapper {
     }
   }
 
+  /**
+   * 获得 get 元素类型
+   * @param name
+   * @return
+   */
   @Override
   public Class<?> getGetterType(String name) {
     PropertyTokenizer prop = new PropertyTokenizer(name);
@@ -124,9 +143,16 @@ public class BeanWrapper extends BaseWrapper {
     }
   }
 
+  /**
+   * 是否有指定属性的 getter 方法
+   * @param name
+   * @return
+   */
   @Override
   public boolean hasGetter(String name) {
+    // 创建分词器
     PropertyTokenizer prop = new PropertyTokenizer(name);
+    // 是否有子表达式
     if (prop.hasNext()) {
       if (metaClass.hasGetter(prop.getIndexedName())) {
         MetaObject metaValue = metaObject.metaObjectForProperty(prop.getIndexedName());
@@ -143,6 +169,7 @@ public class BeanWrapper extends BaseWrapper {
     }
   }
 
+
   @Override
   public MetaObject instantiatePropertyValue(String name, PropertyTokenizer prop, ObjectFactory objectFactory) {
     MetaObject metaValue;
@@ -157,10 +184,13 @@ public class BeanWrapper extends BaseWrapper {
     return metaValue;
   }
 
+  // 调用属性 get 方法
   private Object getBeanProperty(PropertyTokenizer prop, Object object) {
     try {
+      // 获得 get 调用方法
       Invoker method = metaClass.getGetInvoker(prop.getName());
       try {
+        // 执行 get 方法
         return method.invoke(object, NO_ARGUMENTS);
       } catch (Throwable t) {
         throw ExceptionUtil.unwrapThrowable(t);
@@ -186,6 +216,7 @@ public class BeanWrapper extends BaseWrapper {
     }
   }
 
+  // 是否集合
   @Override
   public boolean isCollection() {
     return false;

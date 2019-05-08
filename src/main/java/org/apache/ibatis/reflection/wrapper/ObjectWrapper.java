@@ -15,17 +15,21 @@
  */
 package org.apache.ibatis.reflection.wrapper;
 
-import java.util.List;
-
 import org.apache.ibatis.reflection.MetaObject;
 import org.apache.ibatis.reflection.factory.ObjectFactory;
 import org.apache.ibatis.reflection.property.PropertyTokenizer;
 
+import java.util.List;
+
 /**
+ * 对象包装器接口
+ *
+ * 基于 MetaClass 工具类， 定义对指定对象对各种操作
  * @author Clinton Begin
  */
 public interface ObjectWrapper {
 
+  // 获取属性值
   Object get(PropertyTokenizer prop);
 
   void set(PropertyTokenizer prop, Object value);

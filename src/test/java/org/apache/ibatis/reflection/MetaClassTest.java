@@ -15,16 +15,14 @@
  */
 package org.apache.ibatis.reflection;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.apache.ibatis.domain.misc.RichType;
+import org.apache.ibatis.domain.misc.generics.GenericConcrete;
+import org.junit.jupiter.api.Test;
 
 import java.util.List;
 import java.util.Map;
 
-import org.apache.ibatis.domain.misc.RichType;
-import org.apache.ibatis.domain.misc.generics.GenericConcrete;
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
 
 class MetaClassTest {
 
@@ -96,16 +94,16 @@ class MetaClassTest {
     MetaClass meta = MetaClass.forClass(RichType.class, reflectorFactory);
     assertEquals(String.class, meta.getGetterType("richField"));
     assertEquals(String.class, meta.getGetterType("richProperty"));
-    assertEquals(List.class, meta.getGetterType("richList"));
+    assertEquals(List.class, meta.getGetterType("richList"));// 集合类型
     assertEquals(Map.class, meta.getGetterType("richMap"));
-    assertEquals(List.class, meta.getGetterType("richList[0]"));
+    assertEquals(String.class, meta.getGetterType("richList[0]"));// 元素类型
 
     assertEquals(RichType.class, meta.getGetterType("richType"));
     assertEquals(String.class, meta.getGetterType("richType.richField"));
     assertEquals(String.class, meta.getGetterType("richType.richProperty"));
     assertEquals(List.class, meta.getGetterType("richType.richList"));
     assertEquals(Map.class, meta.getGetterType("richType.richMap"));
-    assertEquals(List.class, meta.getGetterType("richType.richList[0]"));
+    assertEquals(String.class, meta.getGetterType("richType.richList[0]"));
   }
 
   @Test
@@ -138,7 +136,9 @@ class MetaClassTest {
   void shouldFindPropertyName() {
     ReflectorFactory reflectorFactory = new DefaultReflectorFactory();
     MetaClass meta = MetaClass.forClass(RichType.class, reflectorFactory);
-    assertEquals("richField", meta.findProperty("RICHfield"));
+    assertEquals("richField", meta.findProperty("richType.richField"));
   }
+
+
 
 }

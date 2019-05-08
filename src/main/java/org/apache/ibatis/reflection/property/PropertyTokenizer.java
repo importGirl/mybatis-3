@@ -23,10 +23,15 @@ import java.util.Iterator;
  */
 public class PropertyTokenizer implements Iterator<PropertyTokenizer> {
   private String name;                // 当前字符串
-  private final String indexedName;   // 索引
+  private final String indexedName;   // 索引名称
   private String index;               // 编号
   private final String children;      // 剩余字符串
 
+  /**
+   * 分词器   richField、richList[0]、richType.richField、richType.richList[0]
+   * 以上这么多种情况都能区分： name = indexName、index = 0(元素索引位置)、
+   * @param fullname
+   */
   public PropertyTokenizer(String fullname) {
     // 使用 . 作为分隔
     int delim = fullname.indexOf('.');
