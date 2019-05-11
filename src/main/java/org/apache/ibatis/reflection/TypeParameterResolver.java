@@ -15,28 +15,27 @@
  */
 package org.apache.ibatis.reflection;
 
-import java.lang.reflect.Array;
-import java.lang.reflect.Field;
-import java.lang.reflect.GenericArrayType;
-import java.lang.reflect.Method;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
-import java.lang.reflect.TypeVariable;
-import java.lang.reflect.WildcardType;
+import java.lang.reflect.*;
 import java.util.Arrays;
 
 /**
+ * Type 参数解析器
+ *
  * @author Iwao AVE!
  */
 public class TypeParameterResolver {
 
   /**
+   *
    * @return The field type as {@link Type}. If it has type parameters in the declaration,<br>
    *         they will be resolved to the actual runtime {@link Type}s.
    */
   public static Type resolveFieldType(Field field, Type srcType) {
+    // 获取字段的声明类型
     Type fieldType = field.getGenericType();
+    // 获取字段的类
     Class<?> declaringClass = field.getDeclaringClass();
+
     return resolveType(fieldType, srcType, declaringClass);
   }
 
@@ -65,13 +64,20 @@ public class TypeParameterResolver {
   }
 
   private static Type resolveType(Type type, Type srcType, Class<?> declaringClass) {
+    // 泛型类型  T 、E
     if (type instanceof TypeVariable) {
       return resolveTypeVar((TypeVariable<?>) type, srcType, declaringClass);
-    } else if (type instanceof ParameterizedType) {
+    }
+    // 参数化类型
+    else if (type instanceof ParameterizedType) {
       return resolveParameterizedType((ParameterizedType) type, srcType, declaringClass);
-    } else if (type instanceof GenericArrayType) {
+    }
+    // 数组泛型类型
+    else if (type instanceof GenericArrayType) {
       return resolveGenericArrayType((GenericArrayType) type, srcType, declaringClass);
-    } else {
+    }
+    //
+    else {
       return type;
     }
   }
@@ -94,8 +100,11 @@ public class TypeParameterResolver {
   }
 
   private static ParameterizedType resolveParameterizedType(ParameterizedType parameterizedType, Type srcType, Class<?> declaringClass) {
+    // 获得 Map<String,String> 的 Map
     Class<?> rawType = (Class<?>) parameterizedType.getRawType();
+    // 获得 < > 中的类型
     Type[] typeArgs = parameterizedType.getActualTypeArguments();
+    // 创建类型
     Type[] args = new Type[typeArgs.length];
     for (int i = 0; i < typeArgs.length; i++) {
       if (typeArgs[i] instanceof TypeVariable) {
@@ -108,6 +117,7 @@ public class TypeParameterResolver {
         args[i] = typeArgs[i];
       }
     }
+    //
     return new ParameterizedTypeImpl(rawType, null, args);
   }
 
@@ -136,24 +146,32 @@ public class TypeParameterResolver {
   private static Type resolveTypeVar(TypeVariable<?> typeVar, Type srcType, Class<?> declaringClass) {
     Type result;
     Class<?> clazz;
+    // 属于类
     if (srcType instanceof Class) {
       clazz = (Class<?>) srcType;
-    } else if (srcType instanceof ParameterizedType) {
+    }
+    // 属于参数类型
+    else if (srcType instanceof ParameterizedType) {
       ParameterizedType parameterizedType = (ParameterizedType) srcType;
-      clazz = (Class<?>) parameterizedType.getRawType();
+      clazz = (Class<?>) parameterizedType.getRawType();// 返回泛型信息对象
     } else {
       throw new IllegalArgumentException("The 2nd arg must be Class or ParameterizedType, but was: " + srcType.getClass());
     }
 
+    // 如果字段的类型和 Type的class相等 ？
     if (clazz == declaringClass) {
+      // 获得类型变量的上边界
       Type[] bounds = typeVar.getBounds();
       if (bounds.length > 0) {
         return bounds[0];
       }
+      // 无则返回Object
       return Object.class;
     }
 
+    // 获得clazz 的父类
     Type superclass = clazz.getGenericSuperclass();
+    //
     result = scanSuperTypes(typeVar, srcType, declaringClass, clazz, superclass);
     if (result != null) {
       return result;
@@ -170,6 +188,7 @@ public class TypeParameterResolver {
   }
 
   private static Type scanSuperTypes(TypeVariable<?> typeVar, Type srcType, Class<?> declaringClass, Class<?> clazz, Type superclass) {
+
     if (superclass instanceof ParameterizedType) {
       ParameterizedType parentAsType = (ParameterizedType) superclass;
       Class<?> parentAsClass = (Class<?>) parentAsType.getRawType();
@@ -218,11 +237,24 @@ public class TypeParameterResolver {
     super();
   }
 
+  /**
+   * 解析 ParameterizedType 类型
+   */
   static class ParameterizedTypeImpl implements ParameterizedType {
+
+    /**
+     * 实际类型 List、Map
+     */
     private Class<?> rawType;
 
+    /**
+     * 如果为某个属性所有， 则获取这个所有者类型，否则返回 null
+     */
     private Type ownerType;
 
+    /**
+     * <>  中实际类型
+     */
     private Type[] actualTypeArguments;
 
     public ParameterizedTypeImpl(Class<?> rawType, Type ownerType, Type[] actualTypeArguments) {
@@ -253,9 +285,19 @@ public class TypeParameterResolver {
     }
   }
 
+  /**
+   * 解析 WildcardTypeImpl 类型
+   */
   static class WildcardTypeImpl implements WildcardType {
+
+    /**
+     * 泛型表达式下界
+     */
     private Type[] lowerBounds;
 
+    /**
+     * 泛型表达式上界
+     */
     private Type[] upperBounds;
 
     WildcardTypeImpl(Type[] lowerBounds, Type[] upperBounds) {
@@ -275,6 +317,9 @@ public class TypeParameterResolver {
     }
   }
 
+  /**
+   * 泛型数组List<T>[]、T[]
+   */
   static class GenericArrayTypeImpl implements GenericArrayType {
     private Type genericComponentType;
 

@@ -15,6 +15,12 @@
  */
 package org.apache.ibatis.reflection;
 
+import org.apache.ibatis.annotations.Param;
+import org.apache.ibatis.binding.MapperMethod.ParamMap;
+import org.apache.ibatis.session.Configuration;
+import org.apache.ibatis.session.ResultHandler;
+import org.apache.ibatis.session.RowBounds;
+
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.Collections;
@@ -22,14 +28,12 @@ import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
-import org.apache.ibatis.annotations.Param;
-import org.apache.ibatis.binding.MapperMethod.ParamMap;
-import org.apache.ibatis.session.Configuration;
-import org.apache.ibatis.session.ResultHandler;
-import org.apache.ibatis.session.RowBounds;
-
+/**
+ * 参数名解析器
+ */
 public class ParamNameResolver {
 
+  // 通用名称前缀
   private static final String GENERIC_NAME_PREFIX = "param";
 
   /**
@@ -47,40 +51,54 @@ public class ParamNameResolver {
    */
   private final SortedMap<Integer, String> names;
 
+  // 是否有@param 注解
   private boolean hasParamAnnotation;
 
   public ParamNameResolver(Configuration config, Method method) {
+    // 获取参数类型
     final Class<?>[] paramTypes = method.getParameterTypes();
+    // 获取方法参数注解 二维数组（1个参数可以有多个注解）
     final Annotation[][] paramAnnotations = method.getParameterAnnotations();
     final SortedMap<Integer, String> map = new TreeMap<>();
+    // 参数数量
     int paramCount = paramAnnotations.length;
     // get names from @Param annotations
     for (int paramIndex = 0; paramIndex < paramCount; paramIndex++) {
+      // 是否特殊参数， 则直接跳过
       if (isSpecialParameter(paramTypes[paramIndex])) {
         // skip special parameters
         continue;
       }
       String name = null;
+      // 循环每个参数上的注解
       for (Annotation annotation : paramAnnotations[paramIndex]) {
+        // 如果是@Param 注解
         if (annotation instanceof Param) {
+          // 设置为true
           hasParamAnnotation = true;
+          // 获取@param 注解的值
           name = ((Param) annotation).value();
-          break;
+          break;// 跳出这个参数注解列表的循环； 解析下个参数
         }
       }
+      // 不存在 @param
       if (name == null) {
         // @Param was not specified.
+        // 是否使用实际参数名称代替 @param TODO
         if (config.isUseActualParamName()) {
           name = getActualParamName(method, paramIndex);
         }
         if (name == null) {
           // use the parameter index as the name ("0", "1", ...)
           // gcode issue #71
+          // 使用参数下标作为 name ("0", "1", ...)
           name = String.valueOf(map.size());
         }
       }
+      // 放入map 集合
       map.put(paramIndex, name);
     }
+    // 设置为不可修改的 map 集合
     names = Collections.unmodifiableSortedMap(map);
   }
 
@@ -88,6 +106,11 @@ public class ParamNameResolver {
     return ParamNameUtil.getParamNames(method).get(paramIndex);
   }
 
+  /**
+   * 是否特殊参数   RowBounds | ResultHandler 的子类
+   * @param clazz
+   * @return
+   */
   private static boolean isSpecialParameter(Class<?> clazz) {
     return RowBounds.class.isAssignableFrom(clazz) || ResultHandler.class.isAssignableFrom(clazz);
   }
@@ -105,22 +128,39 @@ public class ParamNameResolver {
    * Multiple parameters are named using the naming rule.
    * In addition to the default names, this method also adds the generic names (param1, param2,
    * ...).
+   *
+   * 获取参数名于值的映射
+   *
    * </p>
    */
   public Object getNamedParams(Object[] args) {
     final int paramCount = names.size();
+    // 无参数，则返回null
     if (args == null || paramCount == 0) {
       return null;
-    } else if (!hasParamAnnotation && paramCount == 1) {
+    }
+    // 只有一个非注解的参数，直接返回首元素
+    else if (!hasParamAnnotation && paramCount == 1) {
       return args[names.firstKey()];
-    } else {
+    }
+    //
+    else {
+      /**
+       * 集合
+       * 组合1：key:参数名，value:参数值
+       * 组合2：key:GENERIC_NAME_PREFIX + 参数顺序（1，2，3。。。）, value:参数值
+       */
       final Map<String, Object> param = new ParamMap<>();
       int i = 0;
+      // 遍历 names 集合
       for (Map.Entry<Integer, String> entry : names.entrySet()) {
+        // 组合1，添加到param 集合中
         param.put(entry.getValue(), args[entry.getKey()]);
         // add generic param names (param1, param2, ...)
+        // 组合2，添加到param 集合中 (param1, param2, ...)
         final String genericParamName = GENERIC_NAME_PREFIX + String.valueOf(i + 1);
         // ensure not to overwrite parameter named with @Param
+        // 确认没有去覆盖 @param 中的参数名， 才进行put 操作
         if (!names.containsValue(genericParamName)) {
           param.put(genericParamName, args[entry.getKey()]);
         }

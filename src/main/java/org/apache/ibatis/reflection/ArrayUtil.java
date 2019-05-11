@@ -18,6 +18,8 @@ package org.apache.ibatis.reflection;
 import java.util.Arrays;
 
 /**
+ * 数组工具类  重写 hashCode、equal、toString 方法
+ *
  * Provides hashCode, equals and toString methods that can handle array.
  */
 public class ArrayUtil {
@@ -35,10 +37,13 @@ public class ArrayUtil {
       return 0;
     }
     final Class<?> clazz = obj.getClass();
+    // 不是数组， 则获取对象的 hashCode
     if (!clazz.isArray()) {
       return obj.hashCode();
     }
+    // 返回数组的元素类型
     final Class<?> componentType = clazz.getComponentType();
+    // 返回数组的 hashCode 类型
     if (long.class.equals(componentType)) {
       return Arrays.hashCode((long[]) obj);
     } else if (int.class.equals(componentType)) {
@@ -55,7 +60,9 @@ public class ArrayUtil {
       return Arrays.hashCode((float[]) obj);
     } else if (double.class.equals(componentType)) {
       return Arrays.hashCode((double[]) obj);
-    } else {
+    }
+    // 引用类型
+    else {
       return Arrays.hashCode((Object[]) obj);
     }
   }
@@ -77,19 +84,25 @@ public class ArrayUtil {
    * @return <code>true</code> if two objects are equal; <code>false</code> otherwise.
    */
   public static boolean equals(Object thisObj, Object thatObj) {
+    // 如果为对象为null情况
     if (thisObj == null) {
       return thatObj == null;
     } else if (thatObj == null) {
       return false;
     }
+    // 比较对象类型
     final Class<?> clazz = thisObj.getClass();
     if (!clazz.equals(thatObj.getClass())) {
       return false;
     }
+    // 是否为数组类型；不是则比较两个对象
     if (!clazz.isArray()) {
       return thisObj.equals(thatObj);
     }
+
+    // 如果是数组类型；获取数组中的元素类型
     final Class<?> componentType = clazz.getComponentType();
+    ////// 使用 Arrays.equals（）;比较两个数组对象
     if (long.class.equals(componentType)) {
       return Arrays.equals((long[]) thisObj, (long[]) thatObj);
     } else if (int.class.equals(componentType)) {
@@ -120,13 +133,16 @@ public class ArrayUtil {
    * @return String representation of the {@code obj}.
    */
   public static String toString(Object obj) {
+    // 是否为null
     if (obj == null) {
       return "null";
     }
+    // 如果不是数组，直接调用对象toString方法
     final Class<?> clazz = obj.getClass();
     if (!clazz.isArray()) {
       return obj.toString();
     }
+    // 如果是数组，获取元素类型； Arrays.toString（）调用具体的类型方法
     final Class<?> componentType = obj.getClass().getComponentType();
     if (long.class.equals(componentType)) {
       return Arrays.toString((long[]) obj);

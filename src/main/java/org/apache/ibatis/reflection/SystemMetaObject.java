@@ -21,6 +21,7 @@ import org.apache.ibatis.reflection.wrapper.DefaultObjectWrapperFactory;
 import org.apache.ibatis.reflection.wrapper.ObjectWrapperFactory;
 
 /**
+ * 系统级的 MetaObject 对象； 主要提供 ObjectFactory\ ObjectWrapperFactory\ 空MetaObject 的单例
  * @author Clinton Begin
  */
 public final class SystemMetaObject {

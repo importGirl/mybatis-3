@@ -15,14 +15,15 @@
  */
 package org.apache.ibatis.reflection.wrapper;
 
-import java.util.Collection;
-import java.util.List;
-
 import org.apache.ibatis.reflection.MetaObject;
 import org.apache.ibatis.reflection.factory.ObjectFactory;
 import org.apache.ibatis.reflection.property.PropertyTokenizer;
 
+import java.util.Collection;
+import java.util.List;
+
 /**
+ * // 仅支持 add() 和 addAll() 两个操作
  * @author Clinton Begin
  */
 public class CollectionWrapper implements ObjectWrapper {
@@ -87,6 +88,7 @@ public class CollectionWrapper implements ObjectWrapper {
   public boolean isCollection() {
     return true;
   }
+
 
   @Override
   public void add(Object element) {

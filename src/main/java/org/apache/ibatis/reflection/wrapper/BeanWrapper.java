@@ -61,10 +61,15 @@ public class BeanWrapper extends BaseWrapper {
    */
   @Override
   public void set(PropertyTokenizer prop, Object value) {
+    // 如果存在元素； 即集合
     if (prop.getIndex() != null) {
+      // 解析集合  *** 这里有递归 ***
       Object collection = resolveCollection(prop, object);
+      // 设置指定元素的值
       setCollectionValue(prop, collection, value);
-    } else {
+    }
+    // 否则设置属性值
+    else {
       setBeanProperty(prop, object, value);
     }
   }
@@ -173,10 +178,14 @@ public class BeanWrapper extends BaseWrapper {
   @Override
   public MetaObject instantiatePropertyValue(String name, PropertyTokenizer prop, ObjectFactory objectFactory) {
     MetaObject metaValue;
+    // 获得set 参数类型
     Class<?> type = getSetterType(prop.getName());
     try {
+      // 创建对象
       Object newObject = objectFactory.create(type);
+      // 创建MetaObject 对象
       metaValue = MetaObject.forObject(newObject, metaObject.getObjectFactory(), metaObject.getObjectWrapperFactory(), metaObject.getReflectorFactory());
+      // 设置对象属性的值 invoker
       set(prop, newObject);
     } catch (Exception e) {
       throw new ReflectionException("Cannot set value of property '" + name + "' because '" + name + "' is null and cannot be instantiated on instance of " + type.getName() + ". Cause:" + e.toString(), e);
