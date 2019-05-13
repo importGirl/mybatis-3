@@ -19,22 +19,24 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
+ * 连接池状态统计类，
+ *  记录空闲 和激活的 PooledConnection 集合， 以及相关的数据统计
  * @author Clinton Begin
  */
 public class PoolState {
 
-  protected PooledDataSource dataSource;
+  protected PooledDataSource dataSource;                                          // 所属的PoolDataSource 对象
 
-  protected final List<PooledConnection> idleConnections = new ArrayList<>();
-  protected final List<PooledConnection> activeConnections = new ArrayList<>();
-  protected long requestCount = 0;
-  protected long accumulatedRequestTime = 0;
-  protected long accumulatedCheckoutTime = 0;
-  protected long claimedOverdueConnectionCount = 0;
-  protected long accumulatedCheckoutTimeOfOverdueConnections = 0;
-  protected long accumulatedWaitTime = 0;
-  protected long hadToWaitCount = 0;
-  protected long badConnectionCount = 0;
+  protected final List<PooledConnection> idleConnections = new ArrayList<>();     // 空闲连接集合
+  protected final List<PooledConnection> activeConnections = new ArrayList<>();   // 活动连接集合
+  protected long requestCount = 0;                                                // 全局统计 - 获取连接数量
+  protected long accumulatedRequestTime = 0;                                      // 全局统计 - 获取连接时间
+  protected long accumulatedCheckoutTime = 0;                                     // 全局统计 - 获取到连接非超时 + 超时的占用时长
+  protected long claimedOverdueConnectionCount = 0;                               // 全局统计 - 获取到连接超时的次数
+  protected long accumulatedCheckoutTimeOfOverdueConnections = 0;                 // 全局统计 - 获取到连接超时的占用时长
+  protected long accumulatedWaitTime = 0;                                         // 全局统计 - 等待连接时间
+  protected long hadToWaitCount = 0;                                              // 全局统计 - 需要等待的连接数
+  protected long badConnectionCount = 0;                                          // 全局统计 - 不可用连接数
 
   public PoolState(PooledDataSource dataSource) {
     this.dataSource = dataSource;

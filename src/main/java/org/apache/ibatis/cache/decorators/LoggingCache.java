@@ -15,24 +15,26 @@
  */
 package org.apache.ibatis.cache.decorators;
 
-import java.util.concurrent.locks.ReadWriteLock;
-
 import org.apache.ibatis.cache.Cache;
 import org.apache.ibatis.logging.Log;
 import org.apache.ibatis.logging.LogFactory;
 
+import java.util.concurrent.locks.ReadWriteLock;
+
 /**
+ * 支持日志的Cache 类
  * @author Clinton Begin
  */
 public class LoggingCache implements Cache {
 
-  private final Log log;
-  private final Cache delegate;
-  protected int requests = 0;
-  protected int hits = 0;
+  private final Log log;          // 日志对象
+  private final Cache delegate;   // 装饰的 cache 对象
+  protected int requests = 0;     // 统计请求缓存的次数
+  protected int hits = 0;         // 统计命中缓存的次数
 
   public LoggingCache(Cache delegate) {
     this.delegate = delegate;
+    // 获取相同的日志 log 对象
     this.log = LogFactory.getLog(getId());
   }
 
@@ -51,16 +53,25 @@ public class LoggingCache implements Cache {
     delegate.putObject(key, object);
   }
 
+  /**
+   * 获取缓存对象
+   * @param key The key
+   * @return
+   */
   @Override
   public Object getObject(Object key) {
+    // 添加统计次数
     requests++;
+    // 获取装饰 cache 对象的值
     final Object value = delegate.getObject(key);
+    // 统计命中次数
     if (value != null) {
       hits++;
     }
     if (log.isDebugEnabled()) {
       log.debug("Cache Hit Ratio [" + getId() + "]: " + getHitRatio());
     }
+    // 返回
     return value;
   }
 
@@ -89,6 +100,10 @@ public class LoggingCache implements Cache {
     return delegate.equals(obj);
   }
 
+  /**
+   * 缓存命中率
+   * @return
+   */
   private double getHitRatio() {
     return (double) hits / (double) requests;
   }

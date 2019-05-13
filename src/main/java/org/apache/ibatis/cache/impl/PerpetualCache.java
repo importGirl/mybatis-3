@@ -15,21 +15,26 @@
  */
 package org.apache.ibatis.cache.impl;
 
+import org.apache.ibatis.cache.Cache;
+import org.apache.ibatis.cache.CacheException;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.locks.ReadWriteLock;
 
-import org.apache.ibatis.cache.Cache;
-import org.apache.ibatis.cache.CacheException;
-
 /**
+ * 永不过期的 Cache 实现类
+ * 底层容器: HashMap
  * @author Clinton Begin
  */
 public class PerpetualCache implements Cache {
 
+  /** 标识 */
   private final String id;
 
+  /** 缓存容器 */
   private Map<Object, Object> cache = new HashMap<>();
+
 
   public PerpetualCache(String id) {
     this.id = id;
@@ -70,6 +75,11 @@ public class PerpetualCache implements Cache {
     return null;
   }
 
+  /**
+   * 比较标识 id 是否相等
+   * @param o
+   * @return
+   */
   @Override
   public boolean equals(Object o) {
     if (getId() == null) {
@@ -86,6 +96,10 @@ public class PerpetualCache implements Cache {
     return getId().equals(otherCache.getId());
   }
 
+  /**
+   * id 的hashcode
+   * @return
+   */
   @Override
   public int hashCode() {
     if (getId() == null) {

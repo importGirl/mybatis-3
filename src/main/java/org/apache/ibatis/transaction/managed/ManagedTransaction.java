@@ -15,20 +15,23 @@
  */
 package org.apache.ibatis.transaction.managed;
 
-import java.sql.Connection;
-import java.sql.SQLException;
-import javax.sql.DataSource;
-
 import org.apache.ibatis.logging.Log;
 import org.apache.ibatis.logging.LogFactory;
 import org.apache.ibatis.session.TransactionIsolationLevel;
 import org.apache.ibatis.transaction.Transaction;
+
+import javax.sql.DataSource;
+import java.sql.Connection;
+import java.sql.SQLException;
 
 /**
  * {@link Transaction} that lets the container manage the full lifecycle of the transaction.
  * Delays connection retrieval until getConnection() is called.
  * Ignores all commit or rollback requests.
  * By default, it closes the connection but can be configured not to do it.
+ *
+ * 基于容器管理的事务实现类
+ * rollback 和 commit 方法是空实现； 因为事务的管理交给了容器 -> SpringManagedTransaction
  *
  * @author Clinton Begin
  *
@@ -41,7 +44,7 @@ public class ManagedTransaction implements Transaction {
   private DataSource dataSource;
   private TransactionIsolationLevel level;
   private Connection connection;
-  private final boolean closeConnection;
+  private final boolean closeConnection;        // 是否关闭连接
 
   public ManagedTransaction(Connection connection, boolean closeConnection) {
     this.connection = connection;

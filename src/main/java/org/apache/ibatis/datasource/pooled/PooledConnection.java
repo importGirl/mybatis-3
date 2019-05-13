@@ -15,31 +15,35 @@
  */
 package org.apache.ibatis.datasource.pooled;
 
+import org.apache.ibatis.reflection.ExceptionUtil;
+
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.sql.Connection;
 import java.sql.SQLException;
 
-import org.apache.ibatis.reflection.ExceptionUtil;
-
 /**
+ * 池化的连接对象
  * @author Clinton Begin
  */
 class PooledConnection implements InvocationHandler {
 
-  private static final String CLOSE = "close";
+  private static final String CLOSE = "close";          // 关闭 connection 的方法名
+  /**
+   * JDK proxy 的接口
+   */
   private static final Class<?>[] IFACES = new Class<?>[] { Connection.class };
 
-  private final int hashCode;
-  private final PooledDataSource dataSource;
-  private final Connection realConnection;
-  private final Connection proxyConnection;
-  private long checkoutTimestamp;
-  private long createdTimestamp;
-  private long lastUsedTimestamp;
-  private int connectionTypeCode;
-  private boolean valid;
+  private final int hashCode;                           // 对象标识
+  private final PooledDataSource dataSource;            // 池化数据源
+  private final Connection realConnection;              // 真正的连接对象
+  private final Connection proxyConnection;             // 代理连接对象
+  private long checkoutTimestamp;                       // 从连接池中， 获取走的时间戳
+  private long createdTimestamp;                        // 创建时间戳
+  private long lastUsedTimestamp;                       // 最后更新时间戳
+  private int connectionTypeCode;                       // 连接的标识
+  private boolean valid;                                // 是否可用
 
   /**
    * Constructor for SimplePooledConnection that uses the Connection and PooledDataSource passed in.
@@ -59,6 +63,7 @@ class PooledConnection implements InvocationHandler {
 
   /**
    * Invalidates the connection.
+   * 设置连接为不可用
    */
   public void invalidate() {
     valid = false;
@@ -66,6 +71,8 @@ class PooledConnection implements InvocationHandler {
 
   /**
    * Method to see if the connection is usable.
+   *
+   * 连接是否可用
    *
    * @return True if the connection is usable
    */
@@ -76,6 +83,8 @@ class PooledConnection implements InvocationHandler {
   /**
    * Getter for the *real* connection that this wraps.
    *
+   * 获取真正的连接
+   *
    * @return The connection
    */
   public Connection getRealConnection() {
@@ -84,6 +93,8 @@ class PooledConnection implements InvocationHandler {
 
   /**
    * Getter for the proxy for the connection.
+   *
+   * 获得代理连接
    *
    * @return The proxy
    */
@@ -94,6 +105,8 @@ class PooledConnection implements InvocationHandler {
   /**
    * Gets the hashcode of the real connection (or 0 if it is null).
    *
+   * 获得连接的表示
+   *
    * @return The hashcode of the real connection (or 0 if it is null)
    */
   public int getRealHashCode() {
@@ -102,6 +115,8 @@ class PooledConnection implements InvocationHandler {
 
   /**
    * Getter for the connection type (based on url + user + password).
+   *
+   * 获得连接编码  （url + user + password） hashcode
    *
    * @return The connection type
    */
@@ -207,6 +222,8 @@ class PooledConnection implements InvocationHandler {
   /**
    * Allows comparing this connection to another.
    *
+   * 比较 connection的hashCode;
+   *
    * @param obj - the other connection to test for equality
    * @see Object#equals(Object)
    */
@@ -224,6 +241,8 @@ class PooledConnection implements InvocationHandler {
   /**
    * Required for InvocationHandler implementation.
    *
+   * 代理执行方法
+   *
    * @param proxy  - not used
    * @param method - the method to be executed
    * @param args   - the parameters to be passed to the method
@@ -231,17 +250,21 @@ class PooledConnection implements InvocationHandler {
    */
   @Override
   public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+    // 获取方法名
     String methodName = method.getName();
+    // 关闭的方法； 则将连接放回到连接池中，避免连接被关闭
     if (CLOSE.hashCode() == methodName.hashCode() && CLOSE.equals(methodName)) {
       dataSource.pushConnection(this);
       return null;
     }
     try {
+      // 判断非 Object 的方法， 则先检查连接是否可用
       if (!Object.class.equals(method.getDeclaringClass())) {
         // issue #579 toString() should never fail
         // throw an SQLException instead of a Runtime
         checkConnection();
       }
+      // 反射调用方法
       return method.invoke(realConnection, args);
     } catch (Throwable t) {
       throw ExceptionUtil.unwrapThrowable(t);

@@ -26,6 +26,9 @@ import java.util.concurrent.locks.ReadWriteLock;
  * <p>
  * MyBatis will pass the namespace as id to the constructor.
  *
+ * 缓存容器接口
+ * 注意他是一个容器： 可以往里面添加各种接口
+ *
  * <pre>
  * public MyCache(final String id) {
  *  if (id == null) {

@@ -15,21 +15,23 @@
  */
 package org.apache.ibatis.transaction.jdbc;
 
-import java.sql.Connection;
-import java.sql.SQLException;
-import javax.sql.DataSource;
-
 import org.apache.ibatis.logging.Log;
 import org.apache.ibatis.logging.LogFactory;
 import org.apache.ibatis.session.TransactionIsolationLevel;
 import org.apache.ibatis.transaction.Transaction;
 import org.apache.ibatis.transaction.TransactionException;
 
+import javax.sql.DataSource;
+import java.sql.Connection;
+import java.sql.SQLException;
+
 /**
  * {@link Transaction} that makes use of the JDBC commit and rollback facilities directly.
  * It relies on the connection retrieved from the dataSource to manage the scope of the transaction.
  * Delays connection retrieval until getConnection() is called.
  * Ignores commit or rollback requests when autocommit is on.
+ *
+ * 基于 jdbc 事务实现类
  *
  * @author Clinton Begin
  *
@@ -39,10 +41,10 @@ public class JdbcTransaction implements Transaction {
 
   private static final Log log = LogFactory.getLog(JdbcTransaction.class);
 
-  protected Connection connection;
-  protected DataSource dataSource;
-  protected TransactionIsolationLevel level;
-  protected boolean autoCommit;
+  protected Connection connection;            // connection 对象
+  protected DataSource dataSource;            // datasource 对象
+  protected TransactionIsolationLevel level;  // 事务隔离级别
+  protected boolean autoCommit;               // 是否自动提交事务
 
   public JdbcTransaction(DataSource ds, TransactionIsolationLevel desiredLevel, boolean desiredAutoCommit) {
     dataSource = ds;
@@ -82,6 +84,7 @@ public class JdbcTransaction implements Transaction {
     }
   }
 
+
   @Override
   public void close() throws SQLException {
     if (connection != null) {
@@ -93,12 +96,18 @@ public class JdbcTransaction implements Transaction {
     }
   }
 
+  /**
+   * 设置指定的 autoCommit 属性
+   * @param desiredAutoCommit
+   */
   protected void setDesiredAutoCommit(boolean desiredAutoCommit) {
     try {
+      // 与指定的 autocommit 是否一致
       if (connection.getAutoCommit() != desiredAutoCommit) {
         if (log.isDebugEnabled()) {
           log.debug("Setting autocommit to " + desiredAutoCommit + " on JDBC Connection [" + connection + "]");
         }
+        // 设置 autoCommit
         connection.setAutoCommit(desiredAutoCommit);
       }
     } catch (SQLException e) {
@@ -110,6 +119,9 @@ public class JdbcTransaction implements Transaction {
     }
   }
 
+  /**
+   * 重置自动提交属性
+   */
   protected void resetAutoCommit() {
     try {
       if (!connection.getAutoCommit()) {
@@ -131,14 +143,21 @@ public class JdbcTransaction implements Transaction {
     }
   }
 
+  /**
+   * 打开连接
+   * @throws SQLException
+   */
   protected void openConnection() throws SQLException {
     if (log.isDebugEnabled()) {
       log.debug("Opening JDBC Connection");
     }
+    // 获得连接 {@link Datasource#popConnection()}
     connection = dataSource.getConnection();
+    // 设置事务隔离级别
     if (level != null) {
       connection.setTransactionIsolation(level.getLevel());
     }
+    // 设置 autocommit 属性
     setDesiredAutoCommit(autoCommit);
   }
 
