@@ -15,15 +15,15 @@
  */
 package org.apache.ibatis.cache.decorators;
 
+import org.apache.ibatis.cache.Cache;
+import org.apache.ibatis.logging.Log;
+import org.apache.ibatis.logging.LogFactory;
+
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.locks.ReadWriteLock;
-
-import org.apache.ibatis.cache.Cache;
-import org.apache.ibatis.logging.Log;
-import org.apache.ibatis.logging.LogFactory;
 
 /**
  * The 2nd level cache transactional buffer.
@@ -33,6 +33,9 @@ import org.apache.ibatis.logging.LogFactory;
  * Blocking cache support has been added. Therefore any get() that returns a cache miss
  * will be followed by a put() so any lock associated with the key can be released.
  *
+ * 事务缓存实现类 TODO 如何使用？
+ * 实现原理：Map 缓存提交的事务对象；Set 缓存未命中的缓存
+ *
  * @author Clinton Begin
  * @author Eduardo Macarron
  */
@@ -41,9 +44,9 @@ public class TransactionalCache implements Cache {
   private static final Log log = LogFactory.getLog(TransactionalCache.class);
 
   private final Cache delegate;
-  private boolean clearOnCommit;
-  private final Map<Object, Object> entriesToAddOnCommit;
-  private final Set<Object> entriesMissedInCache;
+  private boolean clearOnCommit;                          // 是否提交事务后清除缓存
+  private final Map<Object, Object> entriesToAddOnCommit; // 提交的事务对象的集合
+  private final Set<Object> entriesMissedInCache;         // 没有命中缓存的集合
 
   public TransactionalCache(Cache delegate) {
     this.delegate = delegate;
@@ -62,13 +65,20 @@ public class TransactionalCache implements Cache {
     return delegate.getSize();
   }
 
+  /**
+   *
+   * @param key The key
+   * @return
+   */
   @Override
   public Object getObject(Object key) {
     // issue #116
     Object object = delegate.getObject(key);
+    // 添加到未命中集合中
     if (object == null) {
       entriesMissedInCache.add(key);
     }
+
     // issue #146
     if (clearOnCommit) {
       return null;
@@ -99,15 +109,23 @@ public class TransactionalCache implements Cache {
   }
 
   public void commit() {
+    // 是否清空
     if (clearOnCommit) {
       delegate.clear();
     }
+    // 刷新需要缓存的事务到缓存中
     flushPendingEntries();
+    // 重置集合
     reset();
   }
 
+  /**
+   * 回滚
+   */
   public void rollback() {
+    // 释放未命中缓存
     unlockMissedEntries();
+    // 重置； 但是 delegate 依然存在
     reset();
   }
 
@@ -117,10 +135,15 @@ public class TransactionalCache implements Cache {
     entriesMissedInCache.clear();
   }
 
+  /**
+   * 刷新需要缓存的事务到缓存中
+   */
   private void flushPendingEntries() {
+    // 需要提交的事务集合
     for (Map.Entry<Object, Object> entry : entriesToAddOnCommit.entrySet()) {
       delegate.putObject(entry.getKey(), entry.getValue());
     }
+    // 未命中缓存到集合， value 设置为null
     for (Object entry : entriesMissedInCache) {
       if (!entriesToAddOnCommit.containsKey(entry)) {
         delegate.putObject(entry, null);
@@ -128,6 +151,9 @@ public class TransactionalCache implements Cache {
     }
   }
 
+  /**
+   * 是否未命中的缓存
+   */
   private void unlockMissedEntries() {
     for (Object entry : entriesMissedInCache) {
       try {

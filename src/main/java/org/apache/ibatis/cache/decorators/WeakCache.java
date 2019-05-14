@@ -120,9 +120,17 @@ public class WeakCache implements Cache {
     }
   }
 
+
   private static class WeakEntry extends WeakReference<Object> {
     private final Object key;
 
+    /**
+     * 实现弱引用对象；
+     * 当对象value 被回收时， 会把对象放到与之关联的队列中 garbageCollectionQueue
+     * @param key
+     * @param value
+     * @param garbageCollectionQueue
+     */
     private WeakEntry(Object key, Object value, ReferenceQueue<Object> garbageCollectionQueue) {
       super(value, garbageCollectionQueue);
       this.key = key;

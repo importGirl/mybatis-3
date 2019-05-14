@@ -15,31 +15,34 @@
  */
 package org.apache.ibatis.cache.decorators;
 
+import org.apache.ibatis.cache.Cache;
+
 import java.lang.ref.ReferenceQueue;
 import java.lang.ref.SoftReference;
 import java.util.Deque;
 import java.util.LinkedList;
 import java.util.concurrent.locks.ReadWriteLock;
 
-import org.apache.ibatis.cache.Cache;
-
 /**
  * Soft Reference cache decorator
  * Thanks to Dr. Heinz Kabutz for his guidance here.
  *
+ * 基于 softReference 的cache 实现类
+ *实现原理： softReference
  * @author Clinton Begin
  */
 public class SoftCache implements Cache {
-  private final Deque<Object> hardLinksToAvoidGarbageCollection;
-  private final ReferenceQueue<Object> queueOfGarbageCollectedEntries;
+  private final Deque<Object> hardLinksToAvoidGarbageCollection;      // 强引用对象
+  //在检测到适当的可到达性更改后，垃圾回收器将已注册的引用对象添加到该队列中
+  private final ReferenceQueue<Object> queueOfGarbageCollectedEntries;// 被 gc 回收的软引用集合；
   private final Cache delegate;
-  private int numberOfHardLinks;
+  private int numberOfHardLinks;  // 强引用集合大小
 
   public SoftCache(Cache delegate) {
     this.delegate = delegate;
     this.numberOfHardLinks = 256;
-    this.hardLinksToAvoidGarbageCollection = new LinkedList<>();
-    this.queueOfGarbageCollectedEntries = new ReferenceQueue<>();
+    this.hardLinksToAvoidGarbageCollection = new LinkedList<>(); // 链表
+    this.queueOfGarbageCollectedEntries = new ReferenceQueue<>();// 引用队列，
   }
 
   @Override
@@ -75,6 +78,7 @@ public class SoftCache implements Cache {
         delegate.removeObject(key);
       } else {
         // See #586 (and #335) modifications need more than a read lock
+        // 获取就是使用该引用对象， 则需要把它加入到强引用队列中；不使用时是否也要调用删除方法
         synchronized (hardLinksToAvoidGarbageCollection) {
           hardLinksToAvoidGarbageCollection.addFirst(result);
           if (hardLinksToAvoidGarbageCollection.size() > numberOfHardLinks) {
@@ -113,6 +117,7 @@ public class SoftCache implements Cache {
     }
   }
 
+  // 继承软引用对象
   private static class SoftEntry extends SoftReference<Object> {
     private final Object key;
 
