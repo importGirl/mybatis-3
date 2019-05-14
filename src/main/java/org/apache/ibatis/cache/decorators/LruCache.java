@@ -15,25 +15,28 @@
  */
 package org.apache.ibatis.cache.decorators;
 
+import org.apache.ibatis.cache.Cache;
+
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.locks.ReadWriteLock;
 
-import org.apache.ibatis.cache.Cache;
-
 /**
  * Lru (least recently used) cache decorator.
+ *
+ * 基于最少使用淘汰机制到缓存
  *
  * @author Clinton Begin
  */
 public class LruCache implements Cache {
 
-  private final Cache delegate;
-  private Map<Object, Object> keyMap;
-  private Object eldestKey;
+  private final Cache delegate;         // 被装饰的类
+  private Map<Object, Object> keyMap;   // 基于
+  private Object eldestKey;             // 最老的键， 即将被淘汰
 
   public LruCache(Cache delegate) {
     this.delegate = delegate;
+    // 初始化 keyMap 对象
     setSize(1024);
   }
 
@@ -48,9 +51,15 @@ public class LruCache implements Cache {
   }
 
   public void setSize(final int size) {
+    /**
+     * 当 accessOrder 为true时， 元素会安装访问顺序排序，最近访问的放在最前，最早访问的放在最后
+     * .75F - 加载因子 ： 集合扩容时使用； 初始容量 * 0.75
+     */
     keyMap = new LinkedHashMap<Object, Object>(size, .75F, true) {
       private static final long serialVersionUID = 4267176411845948333L;
 
+      // LinkedHashMap 自带的判断是否删除最老元素方法， 默认返回false, 即不删除老数据
+      // 我们重写该方法， 当超过最打数量时， 删除最老的元素
       @Override
       protected boolean removeEldestEntry(Map.Entry<Object, Object> eldest) {
         boolean tooBig = size() > size;
@@ -90,6 +99,7 @@ public class LruCache implements Cache {
     return null;
   }
 
+  // 删除最老的元素
   private void cycleKeyList(Object key) {
     keyMap.put(key, key);
     if (eldestKey != null) {

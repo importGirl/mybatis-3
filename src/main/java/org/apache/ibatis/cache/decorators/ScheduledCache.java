@@ -15,18 +15,20 @@
  */
 package org.apache.ibatis.cache.decorators;
 
-import java.util.concurrent.locks.ReadWriteLock;
-
 import org.apache.ibatis.cache.Cache;
 
+import java.util.concurrent.locks.ReadWriteLock;
+
 /**
+ * 定时清空缓存类
+ * 实现原理： 每次调用 cache 方法是， 都去检查是否需要清空缓存
  * @author Clinton Begin
  */
 public class ScheduledCache implements Cache {
 
-  private final Cache delegate;
-  protected long clearInterval;
-  protected long lastClear;
+  private final Cache delegate;     // 被装饰 cache 对象
+  protected long clearInterval;     // 清除间隔
+  protected long lastClear;         // 最后清空时间
 
   public ScheduledCache(Cache delegate) {
     this.delegate = delegate;
