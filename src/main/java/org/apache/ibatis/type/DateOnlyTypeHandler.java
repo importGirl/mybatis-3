@@ -22,10 +22,20 @@ import java.sql.SQLException;
 import java.util.Date;
 
 /**
+ * Date 类型的 TypeHandler 实现类; {@link Date} -> {@link java.sql.Date}
+ *
  * @author Clinton Begin
  */
 public class DateOnlyTypeHandler extends BaseTypeHandler<Date> {
 
+  /**
+   * 设置到 ps 中； {@link Date} -> {@link java.sql.Date}
+   * @param ps
+   * @param i
+   * @param parameter
+   * @param jdbcType
+   * @throws SQLException
+   */
   @Override
   public void setNonNullParameter(PreparedStatement ps, int i, Date parameter, JdbcType jdbcType)
       throws SQLException {

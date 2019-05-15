@@ -22,11 +22,17 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
+ * 匹配的 java Type类型注解
  * @author Eduardo Macarron
  */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
 public @interface MappedTypes {
+
+  /**
+   * 匹配到到 java type 类型到数组
+   * @return
+   */
   Class<?>[] value();
 }

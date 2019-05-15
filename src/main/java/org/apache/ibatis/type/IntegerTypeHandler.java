@@ -21,23 +21,48 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 /**
+ * Integer 类型的 TypeHandler 实现类
  * @author Clinton Begin
  */
 public class IntegerTypeHandler extends BaseTypeHandler<Integer> {
 
+  /**
+   * 直接设置 ps 的参数
+   * @param ps
+   * @param i
+   * @param parameter
+   * @param jdbcType
+   * @throws SQLException
+   */
   @Override
   public void setNonNullParameter(PreparedStatement ps, int i, Integer parameter, JdbcType jdbcType)
       throws SQLException {
     ps.setInt(i, parameter);
   }
 
+  /**
+   * 通过 columnName 获取 值
+   * @param rs
+   * @param columnName
+   * @return
+   * @throws SQLException
+   */
   @Override
   public Integer getNullableResult(ResultSet rs, String columnName)
       throws SQLException {
+    // 获得指定字段的值
     int result = rs.getInt(columnName);
+    // 返回 result
     return result == 0 && rs.wasNull() ? null : result;
   }
 
+  /**
+   * 通过 columnIndex 获取 值
+   * @param rs
+   * @param columnIndex
+   * @return
+   * @throws SQLException
+   */
   @Override
   public Integer getNullableResult(ResultSet rs, int columnIndex)
       throws SQLException {
@@ -45,6 +70,13 @@ public class IntegerTypeHandler extends BaseTypeHandler<Integer> {
     return result == 0 && rs.wasNull() ? null : result;
   }
 
+  /**
+   * 通过 columnIndex 获取 值
+   * @param cs
+   * @param columnIndex
+   * @return
+   * @throws SQLException
+   */
   @Override
   public Integer getNullableResult(CallableStatement cs, int columnIndex)
       throws SQLException {

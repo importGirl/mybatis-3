@@ -23,16 +23,32 @@ import java.sql.Timestamp;
 import java.util.Date;
 
 /**
+ * Date 类型的 TypeHandler 实现类; {@link Date} -> {@link Timestamp}
  * @author Clinton Begin
  */
 public class DateTypeHandler extends BaseTypeHandler<Date> {
 
+  /**
+   * 设置 ps ； Date  -> Timestamp
+   * @param ps
+   * @param i
+   * @param parameter
+   * @param jdbcType
+   * @throws SQLException
+   */
   @Override
   public void setNonNullParameter(PreparedStatement ps, int i, Date parameter, JdbcType jdbcType)
       throws SQLException {
     ps.setTimestamp(i, new Timestamp(parameter.getTime()));
   }
 
+  /**
+   * 获得指定 columnName 的值； Timestamp -> Date
+   * @param rs
+   * @param columnName
+   * @return
+   * @throws SQLException
+   */
   @Override
   public Date getNullableResult(ResultSet rs, String columnName)
       throws SQLException {

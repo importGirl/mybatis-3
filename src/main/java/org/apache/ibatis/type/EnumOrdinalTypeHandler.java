@@ -21,6 +21,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 /**
+ * Enum 到 TypeHandler 实现类 TODO 实际情况，如何设置 enum的值到 sql语句中？
+ * enum -> int
  * @author Clinton Begin
  */
 public class EnumOrdinalTypeHandler<E extends Enum<E>> extends BaseTypeHandler<E> {
@@ -33,6 +35,7 @@ public class EnumOrdinalTypeHandler<E extends Enum<E>> extends BaseTypeHandler<E
       throw new IllegalArgumentException("Type argument cannot be null");
     }
     this.type = type;
+    // 放回类到枚举常量
     this.enums = type.getEnumConstants();
     if (this.enums == null) {
       throw new IllegalArgumentException(type.getSimpleName() + " does not represent an enum type.");
@@ -41,6 +44,7 @@ public class EnumOrdinalTypeHandler<E extends Enum<E>> extends BaseTypeHandler<E
 
   @Override
   public void setNonNullParameter(PreparedStatement ps, int i, E parameter, JdbcType jdbcType) throws SQLException {
+    // 返回枚举常量的序数； 设置 enum的序数到 ps中
     ps.setInt(i, parameter.ordinal());
   }
 
@@ -71,6 +75,11 @@ public class EnumOrdinalTypeHandler<E extends Enum<E>> extends BaseTypeHandler<E
     return toOrdinalEnum(ordinal);
   }
 
+  /**
+   * 根据 enum 到序数， 获取enum 对应到对象
+   * @param ordinal
+   * @return
+   */
   private E toOrdinalEnum(int ordinal) {
     try {
       return enums[ordinal];
