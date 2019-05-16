@@ -32,6 +32,7 @@ import java.util.Properties;
  */
 public class Resources {
 
+  // 类加载器的包装器
   private static ClassLoaderWrapper classLoaderWrapper = new ClassLoaderWrapper();
 
   /**
@@ -76,6 +77,8 @@ public class Resources {
   /**
    * Returns the URL of the resource on the classpath
    *
+   * 获得指定资源的 url
+   *
    * @param loader   The classloader used to fetch the resource
    * @param resource The resource to find
    * @return The resource
@@ -92,6 +95,8 @@ public class Resources {
   /**
    * Returns a resource on the classpath as a Stream object
    *
+   * 获得指定资源的 inputStream
+   *
    * @param resource The resource to find
    * @return The resource
    * @throws java.io.IOException If the resource cannot be found or read
@@ -102,6 +107,8 @@ public class Resources {
 
   /**
    * Returns a resource on the classpath as a Stream object
+   *
+   * 获得指定资源的 inputStream
    *
    * @param loader   The classloader used to fetch the resource
    * @param resource The resource to find
@@ -119,12 +126,16 @@ public class Resources {
   /**
    * Returns a resource on the classpath as a Properties object
    *
+   * 获得指定资源的 properties
+   *
    * @param resource The resource to find
    * @return The resource
    * @throws java.io.IOException If the resource cannot be found or read
    */
   public static Properties getResourceAsProperties(String resource) throws IOException {
+    // 创建 properties 对象
     Properties props = new Properties();
+    // 获得 inputstream , 并加载流
     try (InputStream in = getResourceAsStream(resource)) {
       props.load(in);
     }
@@ -133,6 +144,8 @@ public class Resources {
 
   /**
    * Returns a resource on the classpath as a Properties object
+   *
+   *只用指定类加载器加载资源， 并获取配置对象
    *
    * @param loader   The classloader used to fetch the resource
    * @param resource The resource to find
@@ -149,6 +162,8 @@ public class Resources {
 
   /**
    * Returns a resource on the classpath as a Reader object
+   *
+   * 获得指定资源的 Reader 对象
    *
    * @param resource The resource to find
    * @return The resource
@@ -167,6 +182,8 @@ public class Resources {
   /**
    * Returns a resource on the classpath as a Reader object
    *
+   * 使用指定类加载加载 inputStream, 再获得指定的 reader对象
+   *
    * @param loader   The classloader used to fetch the resource
    * @param resource The resource to find
    * @return The resource
@@ -184,6 +201,8 @@ public class Resources {
 
   /**
    * Returns a resource on the classpath as a File object
+   *
+   * 获得指定资源的 File 对象
    *
    * @param resource The resource to find
    * @return The resource
@@ -208,12 +227,15 @@ public class Resources {
   /**
    * Gets a URL as an input stream
    *
+   * 获得指定 url 的inputstream对象
+   *
    * @param urlString - the URL to get
    * @return An input stream with the data from the URL
    * @throws java.io.IOException If the resource cannot be found or read
    */
   public static InputStream getUrlAsStream(String urlString) throws IOException {
     URL url = new URL(urlString);
+    // 打开 UrlConnection
     URLConnection conn = url.openConnection();
     return conn.getInputStream();
   }
@@ -238,6 +260,8 @@ public class Resources {
   /**
    * Gets a URL as a Properties object
    *
+   * 使用指定 url 获得 properties 对象
+   *
    * @param urlString - the URL to get
    * @return A Properties object with the data from the URL
    * @throws java.io.IOException If the resource cannot be found or read
@@ -252,6 +276,8 @@ public class Resources {
 
   /**
    * Loads a class
+   *
+   * 获得指定类名对应的类
    *
    * @param className - the class to fetch
    * @return The loaded class

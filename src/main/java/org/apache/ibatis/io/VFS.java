@@ -15,6 +15,9 @@
  */
 package org.apache.ibatis.io;
 
+import org.apache.ibatis.logging.Log;
+import org.apache.ibatis.logging.LogFactory;
+
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -24,40 +27,45 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import org.apache.ibatis.logging.Log;
-import org.apache.ibatis.logging.LogFactory;
-
 /**
  * Provides a very simple API for accessing resources within an application server.
+ * 虚拟文件系统抽象类；用来查找指定路径下的文件们
  *
  * @author Ben Gunter
  */
 public abstract class VFS {
   private static final Log log = LogFactory.getLog(VFS.class);
 
-  /** The built-in implementations. */
-  public static final Class<?>[] IMPLEMENTATIONS = { JBoss6VFS.class, DefaultVFS.class };
+  /** The built-in implementations. *///
+  public static final Class<?>[] IMPLEMENTATIONS = { JBoss6VFS.class, DefaultVFS.class };// 默认实现类
 
   /** The list to which implementations are added by {@link #addImplClass(Class)}. */
-  public static final List<Class<? extends VFS>> USER_IMPLEMENTATIONS = new ArrayList<>();
+  public static final List<Class<? extends VFS>> USER_IMPLEMENTATIONS = new ArrayList<>();// 用户自定义实现类
 
   /** Singleton instance holder. */
   private static class VFSHolder {
+    // 创建 vfs 对象
     static final VFS INSTANCE = createVFS();
 
     @SuppressWarnings("unchecked")
     static VFS createVFS() {
       // Try the user implementations first, then the built-ins
+      // 添加 默认实现类和 自定义实现类
       List<Class<? extends VFS>> impls = new ArrayList<>();
       impls.addAll(USER_IMPLEMENTATIONS);
       impls.addAll(Arrays.asList((Class<? extends VFS>[]) IMPLEMENTATIONS));
 
       // Try each implementation class until a valid one is found
       VFS vfs = null;
+
+      // 遍历 vfs 实现集合， 找到 vfs退出
       for (int i = 0; vfs == null || !vfs.isValid(); i++) {
+        // 获得实现类
         Class<? extends VFS> impl = impls.get(i);
         try {
+          // 创建对像
           vfs = impl.newInstance();
+          // 如果为空
           if (vfs == null || !vfs.isValid()) {
             if (log.isDebugEnabled()) {
               log.debug("VFS implementation " + impl.getName() +
@@ -89,6 +97,8 @@ public abstract class VFS {
   /**
    * Adds the specified class to the list of {@link VFS} implementations. Classes added in this
    * manner are tried in the order they are added and before any of the built-in implementations.
+   *
+   * 添加实现类到自定义集合中
    *
    * @param clazz The {@link VFS} implementation class to add.
    */
@@ -189,7 +199,7 @@ public abstract class VFS {
   /**
    * Recursively list the full resource path of all the resources that are children of all the
    * resources found at the specified path.
-   *
+   * 返回 url
    * @param path The path of the resource(s) to list.
    * @return A list containing the names of the child resources.
    * @throws IOException If I/O errors occur

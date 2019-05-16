@@ -120,6 +120,7 @@ public class TypeAliasRegistry {
       if (typeAliases.containsKey(key)) {
         value = (Class<T>) typeAliases.get(key);
       } else {
+        // 获得指定类名的类
         value = (Class<T>) Resources.classForName(string);
       }
       return value;
@@ -138,9 +139,11 @@ public class TypeAliasRegistry {
    * @param superType
    */
   public void registerAliases(String packageName, Class<?> superType) {
-
+    // 创建类解析工具类
     ResolverUtil<Class<?>> resolverUtil = new ResolverUtil<>();
+    // 找到指定packageName 下 superType 的子类
     resolverUtil.find(new ResolverUtil.IsA(superType), packageName);
+    // 获得匹配的类集合
     Set<Class<? extends Class<?>>> typeSet = resolverUtil.getClasses();
 
     for (Class<?> type : typeSet) {
