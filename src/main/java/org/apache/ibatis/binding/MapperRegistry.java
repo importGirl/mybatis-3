@@ -15,31 +15,37 @@
  */
 package org.apache.ibatis.binding;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
-
 import org.apache.ibatis.builder.annotation.MapperAnnotationBuilder;
 import org.apache.ibatis.io.ResolverUtil;
 import org.apache.ibatis.session.Configuration;
 import org.apache.ibatis.session.SqlSession;
 
+import java.util.*;
+
 /**
+ * Mapper 注册表
  * @author Clinton Begin
  * @author Eduardo Macarron
  * @author Lasse Voss
  */
 public class MapperRegistry {
 
+  /** 配置类 */
   private final Configuration config;
+  /** 已注册的Mapper工厂代理 */
   private final Map<Class<?>, MapperProxyFactory<?>> knownMappers = new HashMap<>();
 
   public MapperRegistry(Configuration config) {
     this.config = config;
   }
 
+  /**
+   * 创建代理类
+   * @param type
+   * @param sqlSession
+   * @param <T>
+   * @return
+   */
   @SuppressWarnings("unchecked")
   public <T> T getMapper(Class<T> type, SqlSession sqlSession) {
     final MapperProxyFactory<T> mapperProxyFactory = (MapperProxyFactory<T>) knownMappers.get(type);
@@ -53,10 +59,12 @@ public class MapperRegistry {
     }
   }
 
+  /** 该Mapper 是否已经注册 */
   public <T> boolean hasMapper(Class<T> type) {
     return knownMappers.containsKey(type);
   }
 
+  /** 添加 指定Mapper的代理工厂对象到KnownMappers上 */
   public <T> void addMapper(Class<T> type) {
     if (type.isInterface()) {
       if (hasMapper(type)) {
@@ -80,6 +88,7 @@ public class MapperRegistry {
   }
 
   /**
+   * 获得 knownMappers
    * @since 3.2.2
    */
   public Collection<Class<?>> getMappers() {
@@ -87,6 +96,7 @@ public class MapperRegistry {
   }
 
   /**
+   * 使用 ResolverUtil 加载包下， superType的子类； 然后循环遍历ResolverUtil 加载的集合， 添加到集合中
    * @since 3.2.2
    */
   public void addMappers(String packageName, Class<?> superType) {
@@ -99,6 +109,7 @@ public class MapperRegistry {
   }
 
   /**
+   * 扫描指定包名， 并把Mapper 加载到 knownMappers集合中
    * @since 3.2.2
    */
   public void addMappers(String packageName) {
