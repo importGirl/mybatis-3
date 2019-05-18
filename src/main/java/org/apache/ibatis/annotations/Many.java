@@ -15,22 +15,32 @@
  */
 package org.apache.ibatis.annotations;
 
+import org.apache.ibatis.mapping.FetchType;
+
 import java.lang.annotation.Documented;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import org.apache.ibatis.mapping.FetchType;
-
 /**
  * @author Clinton Begin
+ *
  */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target({})
 public @interface Many {
+
+  /**
+   * 已映射语句的全限定名
+   * @return
+   */
   String select() default "";
 
+  /**
+   *
+   * @return 加载类型
+   */
   FetchType fetchType() default FetchType.DEFAULT;
 
 }

@@ -15,13 +15,10 @@
  */
 package org.apache.ibatis.io;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.UnsupportedEncodingException;
+import org.apache.ibatis.logging.Log;
+import org.apache.ibatis.logging.LogFactory;
+
+import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
@@ -31,12 +28,10 @@ import java.util.List;
 import java.util.jar.JarEntry;
 import java.util.jar.JarInputStream;
 
-import org.apache.ibatis.logging.Log;
-import org.apache.ibatis.logging.LogFactory;
-
 /**
  * A default implementation of {@link VFS} that works for most application servers.
- *
+ * 默认到 VFS 实现类
+ * TODO 不懂
  * @author Ben Gunter
  */
 public class DefaultVFS extends VFS {
@@ -50,6 +45,13 @@ public class DefaultVFS extends VFS {
     return true;
   }
 
+  /**
+   * 递归出所有到资源
+   * @param url The URL that identifies the resource to list.
+   * @param path
+   * @return
+   * @throws IOException
+   */
   @Override
   public List<String> list(URL url, String path) throws IOException {
     InputStream is = null;
@@ -58,17 +60,21 @@ public class DefaultVFS extends VFS {
 
       // First, try to find the URL of a JAR file containing the requested resource. If a JAR
       // file is found, then we'll list child resources by reading the JAR.
+      // 如果url 指向的是 jar resource, 则返回该 jar resource, 否则返回 null
       URL jarUrl = findJarForResource(url);
       if (jarUrl != null) {
         is = jarUrl.openStream();
         if (log.isDebugEnabled()) {
           log.debug("Listing " + url);
         }
+        // 获得以path 开头的资源列表
         resources = listResources(new JarInputStream(is), path);
       }
+      // jarUrl == null
       else {
         List<String> children = new ArrayList<>();
         try {
+          // url 是否是 jar包
           if (isJar(url)) {
             // Some versions of JBoss VFS might give a JAR stream even if the resource
             // referenced by the URL isn't actually a JAR
@@ -85,6 +91,7 @@ public class DefaultVFS extends VFS {
               }
             }
           }
+          // url 不是jar包
           else {
             /*
              * Some servlet containers allow reading from directory resources like a
@@ -102,6 +109,7 @@ public class DefaultVFS extends VFS {
                 log.debug("Reader entry: " + line);
               }
               lines.add(line);
+              // 获得指定 path 的资源，
               if (getResources(path + "/" + line).isEmpty()) {
                 lines.clear();
                 break;
@@ -169,7 +177,7 @@ public class DefaultVFS extends VFS {
   /**
    * List the names of the entries in the given {@link JarInputStream} that begin with the
    * specified {@code path}. Entries will match with or without a leading slash.
-   *
+   * 获取以请求路径开头的资源列表
    * @param jar The JAR input stream
    * @param path The leading path to match
    * @return The names of all the matching entries
@@ -177,6 +185,7 @@ public class DefaultVFS extends VFS {
    */
   protected List<String> listResources(JarInputStream jar, String path) throws IOException {
     // Include the leading and trailing slash when matching names
+    // path 前后补全 /
     if (!path.startsWith("/")) {
       path = "/" + path;
     }
@@ -185,6 +194,7 @@ public class DefaultVFS extends VFS {
     }
 
     // Iterate over the entries and collect those that begin with the requested path
+    // 遍历条目并收集以请求路径开头的条目
     List<String> resources = new ArrayList<>();
     for (JarEntry entry; (entry = jar.getNextJarEntry()) != null;) {
       if (!entry.isDirectory()) {
@@ -225,6 +235,7 @@ public class DefaultVFS extends VFS {
     // If the file part of the URL is itself a URL, then that URL probably points to the JAR
     try {
       for (;;) {
+        // 创建一个Url 对象
         url = new URL(url.getFile());
         if (log.isDebugEnabled()) {
           log.debug("Inner URL: " + url);
@@ -235,6 +246,7 @@ public class DefaultVFS extends VFS {
     }
 
     // Look for the .jar extension and chop off everything after that
+    //  构造此 URL 的字符串表示形式
     StringBuilder jarUrl = new StringBuilder(url.toExternalForm());
     int index = jarUrl.lastIndexOf(".jar");
     if (index >= 0) {
@@ -278,6 +290,7 @@ public class DefaultVFS extends VFS {
             log.debug("Trying real file: " + file.getAbsolutePath());
           }
           testUrl = file.toURI().toURL();
+          // 是否是jar 包
           if (isJar(testUrl)) {
             return testUrl;
           }
@@ -315,6 +328,8 @@ public class DefaultVFS extends VFS {
   /**
    * Returns true if the resource located at the given URL is a JAR file.
    *
+   * url 资源路径是一个 jar包
+   *
    * @param url The URL of the resource to test.
    * @param buffer A buffer into which the first few bytes of the resource are read. The buffer
    *            must be at least the size of {@link #JAR_MAGIC}. (The same buffer may be reused
@@ -324,7 +339,9 @@ public class DefaultVFS extends VFS {
     InputStream is = null;
     try {
       is = url.openStream();
+      // 读取文件头
       is.read(buffer, 0, JAR_MAGIC.length);
+      // 判断文件头的 magic number 是否符合 jar
       if (Arrays.equals(buffer, JAR_MAGIC)) {
         if (log.isDebugEnabled()) {
           log.debug("Found JAR: " + url);

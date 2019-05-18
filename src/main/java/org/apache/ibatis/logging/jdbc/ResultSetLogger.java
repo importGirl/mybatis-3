@@ -15,6 +15,9 @@
  */
 package org.apache.ibatis.logging.jdbc;
 
+import org.apache.ibatis.logging.Log;
+import org.apache.ibatis.reflection.ExceptionUtil;
+
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
@@ -26,12 +29,9 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.StringJoiner;
 
-import org.apache.ibatis.logging.Log;
-import org.apache.ibatis.reflection.ExceptionUtil;
-
 /**
  * ResultSet proxy to add logging.
- *
+ *基于 ResultSet 的代理类
  * @author Clinton Begin
  * @author Eduardo Macarron
  *
@@ -44,6 +44,7 @@ public final class ResultSetLogger extends BaseJdbcLogger implements InvocationH
   private final ResultSet rs;
   private final Set<Integer> blobColumns = new HashSet<>();
 
+  // 二进制类型
   static {
     BLOB_TYPES.add(Types.BINARY);
     BLOB_TYPES.add(Types.BLOB);
@@ -60,26 +61,41 @@ public final class ResultSetLogger extends BaseJdbcLogger implements InvocationH
     this.rs = rs;
   }
 
+  /**
+   * 代理方法
+   * @param proxy
+   * @param method
+   * @param params
+   * @return
+   * @throws Throwable
+   */
   @Override
   public Object invoke(Object proxy, Method method, Object[] params) throws Throwable {
     try {
+      // Object 方法
       if (Object.class.equals(method.getDeclaringClass())) {
         return method.invoke(this, params);
       }
+      // 调用 方法
       Object o = method.invoke(rs, params);
+      // 如果 next 方法
       if ("next".equals(method.getName())) {
         if ((Boolean) o) {
           rows++;
           if (isTraceEnabled()) {
             ResultSetMetaData rsmd = rs.getMetaData();
             final int columnCount = rsmd.getColumnCount();
+            // 如果是第一个元素，打印带有前缀的日志
             if (first) {
               first = false;
               printColumnHeaders(rsmd, columnCount);
             }
+            // 如果不是第一个元素， 打印列的值
             printColumnValues(columnCount);
           }
-        } else {
+        }
+        //
+        else {
           debug("     Total: " + rows, false);
         }
       }
@@ -90,21 +106,36 @@ public final class ResultSetLogger extends BaseJdbcLogger implements InvocationH
     }
   }
 
+  /**
+   * 打印日志前缀 " Columns: id,name,age "
+   * @param rsmd
+   * @param columnCount
+   * @throws SQLException
+   */
   private void printColumnHeaders(ResultSetMetaData rsmd, int columnCount) throws SQLException {
+    // 创建可设置 前缀，后缀， 分隔符号的 String
     StringJoiner row = new StringJoiner(", ", "   Columns: ", "");
     for (int i = 1; i <= columnCount; i++) {
+      // 是否二进制列
       if (BLOB_TYPES.contains(rsmd.getColumnType(i))) {
         blobColumns.add(i);
       }
+      // 获得列头
       row.add(rsmd.getColumnLabel(i));
     }
+    // 打印
     trace(row.toString(), false);
   }
 
+  /**
+   * 打印列的值：" Row: 1, wdg, 19 "
+   * @param columnCount
+   */
   private void printColumnValues(int columnCount) {
     StringJoiner row = new StringJoiner(", ", "       Row: ", "");
     for (int i = 1; i <= columnCount; i++) {
       try {
+        // 是否二进制列
         if (blobColumns.contains(i)) {
           row.add("<<BLOB>>");
         } else {
@@ -115,6 +146,7 @@ public final class ResultSetLogger extends BaseJdbcLogger implements InvocationH
         row.add("<<Cannot Display>>");
       }
     }
+    // 打印
     trace(row.toString(), false);
   }
 

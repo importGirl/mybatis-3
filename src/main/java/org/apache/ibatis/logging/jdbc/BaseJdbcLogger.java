@@ -15,22 +15,15 @@
  */
 package org.apache.ibatis.logging.jdbc;
 
+import org.apache.ibatis.logging.Log;
+import org.apache.ibatis.reflection.ArrayUtil;
+
 import java.lang.reflect.Method;
 import java.sql.Array;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.StringTokenizer;
+import java.util.*;
 import java.util.stream.Collectors;
-
-import org.apache.ibatis.logging.Log;
-import org.apache.ibatis.reflection.ArrayUtil;
 
 /**
  * Base class for proxies to do logging.
@@ -86,6 +79,10 @@ public abstract class BaseJdbcLogger {
     return columnMap.get(key);
   }
 
+  /**
+   * 获得 列的值字符串形式
+   * @return
+   */
   protected String getParameterValueString() {
     List<Object> typeList = new ArrayList<>(columnValues.size());
     for (Object value : columnValues) {
@@ -99,6 +96,11 @@ public abstract class BaseJdbcLogger {
     return parameters.substring(1, parameters.length() - 1);
   }
 
+  /**
+   * 获得指定对象的 toString()
+   * @param value
+   * @return
+   */
   protected String objectValueString(Object value) {
     if (value instanceof Array) {
       try {
@@ -110,6 +112,10 @@ public abstract class BaseJdbcLogger {
     return value.toString();
   }
 
+  /**
+   * 获得列名
+   * @return
+   */
   protected String getColumnString() {
     return columnNames.toString();
   }
@@ -120,7 +126,13 @@ public abstract class BaseJdbcLogger {
     columnValues.clear();
   }
 
+  /**
+   * 删除空格空白字符、制表符、换行符、回车符和换页符；然后以 空格拼接
+   * @param original
+   * @return
+   */
   protected String removeBreakingWhitespace(String original) {
+    // 字符串分隔； 空格
     StringTokenizer whitespaceStripper = new StringTokenizer(original);
     StringBuilder builder = new StringBuilder();
     while (whitespaceStripper.hasMoreTokens()) {
@@ -150,9 +162,16 @@ public abstract class BaseJdbcLogger {
     }
   }
 
+  /**
+   * TODO
+   * @param isInput
+   * @return
+   */
   private String prefix(boolean isInput) {
     char[] buffer = new char[queryStack * 2 + 2];
+    // 把 '=' 分配给 buffer 每个元素
     Arrays.fill(buffer, '=');
+
     buffer[queryStack * 2 + 1] = ' ';
     if (isInput) {
       buffer[queryStack * 2] = '>';

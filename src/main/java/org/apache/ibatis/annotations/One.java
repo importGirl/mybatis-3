@@ -15,15 +15,16 @@
  */
 package org.apache.ibatis.annotations;
 
+import org.apache.ibatis.mapping.FetchType;
+
 import java.lang.annotation.Documented;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import org.apache.ibatis.mapping.FetchType;
-
 /**
  * @author Clinton Begin
+ * 复制类型的单独属性
  */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)

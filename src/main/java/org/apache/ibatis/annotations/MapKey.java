@@ -22,11 +22,14 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
+ * 返回值是 Map<T, Map> 时候使用；
+ * 返回示例：{1={name:jasion,sex:1},2={name:jack,sex=1}}
  * @author Clinton Begin
  */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
 public @interface MapKey {
+
   String value();
 }

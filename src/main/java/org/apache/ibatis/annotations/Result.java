@@ -15,14 +15,14 @@
  */
 package org.apache.ibatis.annotations;
 
+import org.apache.ibatis.type.JdbcType;
+import org.apache.ibatis.type.TypeHandler;
+import org.apache.ibatis.type.UnknownTypeHandler;
+
 import java.lang.annotation.Documented;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-
-import org.apache.ibatis.type.JdbcType;
-import org.apache.ibatis.type.TypeHandler;
-import org.apache.ibatis.type.UnknownTypeHandler;
 
 /**
  * @author Clinton Begin
@@ -31,17 +31,43 @@ import org.apache.ibatis.type.UnknownTypeHandler;
 @Retention(RetentionPolicy.RUNTIME)
 @Target({})
 public @interface Result {
+
+  /**
+   * 是否是 id 字段
+   * @return
+   */
   boolean id() default false;
 
+  /**
+   * 列名
+   * @return
+   */
   String column() default "";
 
+  /**
+   * 对象属性
+   * @return
+   */
   String property() default "";
 
+  /**
+   * 对象属性类型
+   * @return
+   */
   Class<?> javaType() default void.class;
 
+  /**
+   * jdbc 类型
+   * @return
+   */
   JdbcType jdbcType() default JdbcType.UNDEFINED;
 
+  /**
+   * 使用的 TypeHandler 处理器
+   * @return
+   */
   Class<? extends TypeHandler> typeHandler() default UnknownTypeHandler.class;
+
 
   One one() default @One;
 

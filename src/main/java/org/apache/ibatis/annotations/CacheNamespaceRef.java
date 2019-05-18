@@ -23,6 +23,7 @@ import java.lang.annotation.Target;
 
 /**
  * The annotation that reference a cache.
+ * 指定命名空间的注解； <cache-ref/>: 在命名空间中共享相同的缓存配置和实例
  * <p>
  * If you use this annotation, should be specified either {@link #value()} or {@link #name()} attribute.
  * </p>

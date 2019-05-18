@@ -15,16 +15,13 @@
  */
 package org.apache.ibatis.annotations;
 
-import java.lang.annotation.Documented;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
-
 import org.apache.ibatis.mapping.ResultSetType;
 import org.apache.ibatis.mapping.StatementType;
 
+import java.lang.annotation.*;
+
 /**
+ * 操作可选项； 配合其它@select... 注解使用
  * @author Clinton Begin
  */
 @Documented
@@ -34,6 +31,7 @@ public @interface Options {
   /**
    * The options for the {@link Options#flushCache()}.
    * The default is {@link FlushCachePolicy#DEFAULT}
+   *
    */
   enum FlushCachePolicy {
     /** <code>false</code> for select statement; <code>true</code> for insert/update/delete statement. */
@@ -44,23 +42,33 @@ public @interface Options {
     FALSE
   }
 
+  /** 是否使用缓存 */
   boolean useCache() default true;
 
+  /** 刷新缓存 */
   FlushCachePolicy flushCache() default FlushCachePolicy.DEFAULT;
 
+  /** 返回集合类型 */
   ResultSetType resultSetType() default ResultSetType.DEFAULT;
 
+  /** 语句类型 */
   StatementType statementType() default StatementType.PREPARED;
 
+  /** 加载数量 */
   int fetchSize() default -1;
 
+  /** 超时时间 */
   int timeout() default -1;
 
+  /** 是否生成主键 */
   boolean useGeneratedKeys() default false;
 
+  /** 主键在java 中的字段 */
   String keyProperty() default "";
 
+  /** 主键在数据库中的字段 */
   String keyColumn() default "";
 
+  /** 结果级 */
   String resultSets() default "";
 }

@@ -15,16 +15,14 @@
  */
 package org.apache.ibatis.annotations;
 
-import java.lang.annotation.Documented;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
-
 import org.apache.ibatis.cache.decorators.LruCache;
 import org.apache.ibatis.cache.impl.PerpetualCache;
 
+import java.lang.annotation.*;
+
 /**
+ * 缓存空间配置的注解； 对应 xml 的 <cache/> 标签； TODO 如何使用
+ *
  * @author Clinton Begin
  * @author Kazuki Shimizu
  */
@@ -32,19 +30,27 @@ import org.apache.ibatis.cache.impl.PerpetualCache;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
 public @interface CacheNamespace {
+
+  /** 负责存储的cache实现类 */
   Class<? extends org.apache.ibatis.cache.Cache> implementation() default PerpetualCache.class;
 
+  /** 负责过期的cache实现类 */
   Class<? extends org.apache.ibatis.cache.Cache> eviction() default LruCache.class;
 
+  /** 缓存刷新频率 */
   long flushInterval() default 0;
 
+  /** 缓存大小 */
   int size() default 1024;
 
+  /** 是否可读写 */
   boolean readWrite() default true;
 
+  /** 是否阻塞 */
   boolean blocking() default false;
 
   /**
+   *  properties 数组
    * Property values for a implementation object.
    * @since 3.4.2
    */

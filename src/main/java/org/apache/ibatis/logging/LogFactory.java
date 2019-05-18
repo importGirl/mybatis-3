@@ -20,6 +20,7 @@ import java.lang.reflect.Constructor;
 /**
  * @author Clinton Begin
  * @author Eduardo Macarron
+ *
  */
 public final class LogFactory {
 
@@ -43,10 +44,18 @@ public final class LogFactory {
     // disable construction
   }
 
+  /*
+  根据 class 创建log 对象
+   */
   public static Log getLog(Class<?> aClass) {
     return getLog(aClass.getName());
   }
 
+  /**
+   * 获得日志对象
+   * @param logger
+   * @return
+   */
   public static Log getLog(String logger) {
     try {
       return logConstructor.newInstance(logger);
@@ -97,13 +106,20 @@ public final class LogFactory {
     }
   }
 
+  /**
+   * 设置实现类
+   * @param implClass
+   */
   private static void setImplementation(Class<? extends Log> implClass) {
     try {
+      // 获得对应参数的构造器
       Constructor<? extends Log> candidate = implClass.getConstructor(String.class);
+      // 创建对象
       Log log = candidate.newInstance(LogFactory.class.getName());
       if (log.isDebugEnabled()) {
         log.debug("Logging initialized using '" + implClass + "' adapter.");
       }
+      // TODO 加载多次不就覆盖了？
       logConstructor = candidate;
     } catch (Throwable t) {
       throw new LogException("Error setting Log implementation.  Cause: " + t, t);
