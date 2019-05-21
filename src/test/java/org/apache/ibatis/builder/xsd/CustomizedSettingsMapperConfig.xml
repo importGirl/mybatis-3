@@ -16,9 +16,11 @@
        limitations under the License.
 
 -->
-<configuration xmlns="http://mybatis.org/schema/mybatis-config"
-               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-               xsi:schemaLocation="http://mybatis.org/schema/mybatis-config http://mybatis.org/schema/mybatis-config.xsd">
+<!DOCTYPE configuration
+  PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-config.dtd">
+
+<configuration>
 
   <properties resource="org/apache/ibatis/builder/jdbc.properties">
     <property name="prop1" value="aaaa"/>
@@ -105,4 +107,4 @@
     <package name="org.apache.ibatis.builder.mapper"/>
   </mappers>
 
-</configuration>
+  </configuration>

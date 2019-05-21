@@ -95,7 +95,7 @@ class XmlConfigBuilderTest {
     String resource = "org/apache/ibatis/builder/xsd/CustomizedSettingsMapperConfig.xml";
     try (InputStream inputStream = Resources.getResourceAsStream(resource)) {
       XMLConfigBuilder builder = new XMLConfigBuilder(inputStream);
-      Configuration config = builder.parse();
+      Configuration config = builder. parse();
 
       assertEquals(AutoMappingBehavior.NONE, config.getAutoMappingBehavior());
       assertEquals(AutoMappingUnknownColumnBehavior.WARNING, config.getAutoMappingUnknownColumnBehavior());

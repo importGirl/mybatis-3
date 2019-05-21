@@ -24,7 +24,7 @@ import java.sql.ResultSet;
 import java.util.*;
 
 /**
- * 类型 与 别名的注册表， 通过别名，可以不用在 mapper.xml 的 parameterType、resultType中写 权限定名
+ * 类型 与 别名的注册表， 通过别名，可以不用在 mapper.xml 的 parameterType、resultType中写全限定定名
  *
  * @author Clinton Begin
  */

@@ -15,18 +15,24 @@
  */
 package org.apache.ibatis.parsing;
 
+import org.w3c.dom.CharacterData;
+import org.w3c.dom.*;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
-import org.w3c.dom.CharacterData;
-import org.w3c.dom.Element;
-import org.w3c.dom.NamedNodeMap;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-
 /**
+ * 标签的所有信息封装到这个类中；
+ *
+ * node: 封装的节点
+ * name: 节点名称
+ * body: 标签包含的值： 如sql语句
+ * attributes:  标签上的属性
+ * variables: node节点下的 <properties/> 标签属性
+ * xpathParser: 解析不同类型的值
+ *
  * @author Clinton Begin
  */
 public class XNode {
@@ -43,8 +49,12 @@ public class XNode {
     this.node = node;
     this.name = node.getNodeName();
     this.variables = variables;
+    /**
+     * 解析标签中的属性 例：   <properties resource="org/apache/ibatis/builder/jdbc.properties">
+     *     这里解析的 key: resource value: org/apache/ibatis/builder/jdbc.properties
+     */
     this.attributes = parseAttributes(node);
-    this.body = parseBody(node);
+    this.body = parseBody(node);            // 解析标签包含的值: <properties>333</properties>; 解析的body：333
   }
 
   public XNode newXNode(Node node) {
@@ -301,6 +311,10 @@ public class XNode {
     return children;
   }
 
+  /**
+   * 获得子标签中的属性 properties 中
+   * @return
+   */
   public Properties getChildrenAsProperties() {
     Properties properties = new Properties();
     for (XNode child : getChildren()) {
@@ -347,12 +361,20 @@ public class XNode {
     return builder.toString();
   }
 
+  /**
+   * 解析属性
+   * @param n
+   * @return
+   */
   private Properties parseAttributes(Node n) {
+    // 创建 properties 对象
     Properties attributes = new Properties();
     NamedNodeMap attributeNodes = n.getAttributes();
+
     if (attributeNodes != null) {
       for (int i = 0; i < attributeNodes.getLength(); i++) {
         Node attribute = attributeNodes.item(i);
+        // 解析变量的值； 并保存
         String value = PropertyParser.parse(attribute.getNodeValue(), variables);
         attributes.put(attribute.getNodeName(), value);
       }
@@ -360,10 +382,17 @@ public class XNode {
     return attributes;
   }
 
+  /**
+   *
+   * @param node
+   * @return
+   */
   private String parseBody(Node node) {
     String data = getBodyData(node);
     if (data == null) {
+      // 获得子节点
       NodeList children = node.getChildNodes();
+      // 遍历
       for (int i = 0; i < children.getLength(); i++) {
         Node child = children.item(i);
         data = getBodyData(child);
@@ -376,6 +405,7 @@ public class XNode {
   }
 
   private String getBodyData(Node child) {
+    // 是否是 或者文本
     if (child.getNodeType() == Node.CDATA_SECTION_NODE
         || child.getNodeType() == Node.TEXT_NODE) {
       String data = ((CharacterData) child).getData();

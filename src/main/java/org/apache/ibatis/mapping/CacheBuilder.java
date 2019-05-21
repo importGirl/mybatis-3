@@ -15,24 +15,19 @@
  */
 package org.apache.ibatis.mapping;
 
+import org.apache.ibatis.builder.InitializingObject;
+import org.apache.ibatis.cache.Cache;
+import org.apache.ibatis.cache.CacheException;
+import org.apache.ibatis.cache.decorators.*;
+import org.apache.ibatis.cache.impl.PerpetualCache;
+import org.apache.ibatis.reflection.MetaObject;
+import org.apache.ibatis.reflection.SystemMetaObject;
+
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-
-import org.apache.ibatis.builder.InitializingObject;
-import org.apache.ibatis.cache.Cache;
-import org.apache.ibatis.cache.CacheException;
-import org.apache.ibatis.cache.decorators.BlockingCache;
-import org.apache.ibatis.cache.decorators.LoggingCache;
-import org.apache.ibatis.cache.decorators.LruCache;
-import org.apache.ibatis.cache.decorators.ScheduledCache;
-import org.apache.ibatis.cache.decorators.SerializedCache;
-import org.apache.ibatis.cache.decorators.SynchronizedCache;
-import org.apache.ibatis.cache.impl.PerpetualCache;
-import org.apache.ibatis.reflection.MetaObject;
-import org.apache.ibatis.reflection.SystemMetaObject;
 
 /**
  * @author Clinton Begin
@@ -52,11 +47,13 @@ public class CacheBuilder {
     this.decorators = new ArrayList<>();
   }
 
+  /** 添加实现类 */
   public CacheBuilder implementation(Class<? extends Cache> implementation) {
     this.implementation = implementation;
     return this;
   }
 
+  /** 添加淘汰策略 */
   public CacheBuilder addDecorator(Class<? extends Cache> decorator) {
     if (decorator != null) {
       this.decorators.add(decorator);
@@ -69,6 +66,7 @@ public class CacheBuilder {
     return this;
   }
 
+  /** 设置清除频率 */
   public CacheBuilder clearInterval(Long clearInterval) {
     this.clearInterval = clearInterval;
     return this;
@@ -115,6 +113,7 @@ public class CacheBuilder {
     }
   }
 
+  /** 对缓存进行各种包装 */
   private Cache setStandardDecorators(Cache cache) {
     try {
       MetaObject metaCache = SystemMetaObject.forObject(cache);
@@ -139,6 +138,10 @@ public class CacheBuilder {
     }
   }
 
+  /**
+   * 设置缓存属性
+   * @param cache
+   */
   private void setCacheProperties(Cache cache) {
     if (properties != null) {
       MetaObject metaCache = SystemMetaObject.forObject(cache);

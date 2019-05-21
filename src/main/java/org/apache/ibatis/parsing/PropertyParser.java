@@ -62,6 +62,9 @@ public class PropertyParser {
     return parser.parse(string);
   }
 
+  /**
+   * 变量处理类
+   */
   private static class VariableTokenHandler implements TokenHandler {
     private final Properties variables;
     private final boolean enableDefaultValue;
@@ -87,7 +90,9 @@ public class PropertyParser {
           final int separatorIndex = content.indexOf(defaultValueSeparator);
           String defaultValue = null;
           if (separatorIndex >= 0) {
+            // 解析变量的key
             key = content.substring(0, separatorIndex);
+            // 解析默认值
             defaultValue = content.substring(separatorIndex + defaultValueSeparator.length());
           }
           // 有默认值优先替换

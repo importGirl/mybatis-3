@@ -35,6 +35,7 @@ import java.util.List;
 import java.util.Properties;
 
 /**
+ * 解析不同类型； 如：Integer、Double、Long、Float、String 等
  * @author Clinton Begin
  * @author Kazuki Shimizu
  */
@@ -238,6 +239,11 @@ public class XPathParser {
     return xnodes;
   }
 
+  /**
+   * 解析子标签；
+   * @param expression
+   * @return
+   */
   public XNode evalNode(String expression) {
     return evalNode(document, expression);
   }

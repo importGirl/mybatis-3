@@ -15,16 +15,15 @@
  */
 package org.apache.ibatis.mapping;
 
+import org.apache.ibatis.logging.Log;
+import org.apache.ibatis.logging.LogFactory;
+
+import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.SQLException;
 import java.util.Map;
 import java.util.Properties;
-
-import javax.sql.DataSource;
-
-import org.apache.ibatis.logging.Log;
-import org.apache.ibatis.logging.LogFactory;
 
 /**
  * Vendor DatabaseId provider.
@@ -35,12 +34,18 @@ import org.apache.ibatis.logging.LogFactory;
  * It can return null, if no database product name or
  * a properties was specified and no translation was found.
  *
+ * 供应商数据库标识提供器实现类
  * @author Eduardo Macarron
  */
 public class VendorDatabaseIdProvider implements DatabaseIdProvider {
 
   private Properties properties;
 
+  /**
+   * 获得数据库标识
+   * @param dataSource
+   * @return
+   */
   @Override
   public String getDatabaseId(DataSource dataSource) {
     if (dataSource == null) {
@@ -59,6 +64,12 @@ public class VendorDatabaseIdProvider implements DatabaseIdProvider {
     this.properties = p;
   }
 
+  /**
+   * 获得数据厂商名称； 通过 conn 获取
+   * @param dataSource
+   * @return
+   * @throws SQLException
+   */
   private String getDatabaseName(DataSource dataSource) throws SQLException {
     String productName = getDatabaseProductName(dataSource);
     if (this.properties != null) {

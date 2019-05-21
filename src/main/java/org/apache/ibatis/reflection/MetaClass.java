@@ -94,7 +94,8 @@ public class MetaClass {
       return reflector.getSetterType(prop.getName());
     }
   }
-
+  
+  /**  */
   public Class<?> getGetterType(String name) {
     PropertyTokenizer prop = new PropertyTokenizer(name);
     if (prop.hasNext()) {

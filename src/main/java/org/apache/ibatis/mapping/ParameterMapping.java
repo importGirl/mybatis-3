@@ -15,12 +15,12 @@
  */
 package org.apache.ibatis.mapping;
 
-import java.sql.ResultSet;
-
 import org.apache.ibatis.session.Configuration;
 import org.apache.ibatis.type.JdbcType;
 import org.apache.ibatis.type.TypeHandler;
 import org.apache.ibatis.type.TypeHandlerRegistry;
+
+import java.sql.ResultSet;
 
 /**
  * @author Clinton Begin
@@ -100,11 +100,12 @@ public class ParameterMapping {
     }
 
     public ParameterMapping build() {
-      resolveTypeHandler();
-      validate();
+      resolveTypeHandler();// 解析 TypeHandler
+      validate(); // 校验
       return parameterMapping;
     }
 
+    /** 校验 */
     private void validate() {
       if (ResultSet.class.equals(parameterMapping.javaType)) {
         if (parameterMapping.resultMapId == null) {
@@ -121,6 +122,9 @@ public class ParameterMapping {
       }
     }
 
+    /**
+     * 解析 TypeHandler
+     */
     private void resolveTypeHandler() {
       if (parameterMapping.typeHandler == null && parameterMapping.javaType != null) {
         Configuration configuration = parameterMapping.configuration;
