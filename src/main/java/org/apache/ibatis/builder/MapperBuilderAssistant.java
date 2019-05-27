@@ -190,18 +190,25 @@ public class MapperBuilderAssistant extends BaseBuilder {
       Discriminator discriminator,
       List<ResultMapping> resultMappings,
       Boolean autoMapping) {
+    // 当前的命名空间
     id = applyCurrentNamespace(id, false);
+    // 父类的命名空间
     extend = applyCurrentNamespace(extend, true);
 
+    // 父类还没有解析，抛出移除； 外面会 try-catch , 并把未解析集合加入到 incompleteResultMaps 集合中
     if (extend != null) {
       if (!configuration.hasResultMap(extend)) {
         throw new IncompleteElementException("Could not find a parent resultmap with id '" + extend + "'");
       }
+      // 获取 ResultMap 集合
       ResultMap resultMap = configuration.getResultMap(extend);
+      // 创建一个新到 list
       List<ResultMapping> extendedResultMappings = new ArrayList<>(resultMap.getResultMappings());
+      // 排除掉
       extendedResultMappings.removeAll(resultMappings);
       // Remove parent constructor if this resultMap declares a constructor.
       boolean declaresConstructor = false;
+      // TODO ?
       for (ResultMapping resultMapping : resultMappings) {
         if (resultMapping.getFlags().contains(ResultFlag.CONSTRUCTOR)) {
           declaresConstructor = true;
@@ -213,6 +220,7 @@ public class MapperBuilderAssistant extends BaseBuilder {
       }
       resultMappings.addAll(extendedResultMappings);
     }
+    // 构建 ResultMap 对象， 添加到 ResultMaps 集合中
     ResultMap resultMap = new ResultMap.Builder(configuration, id, type, resultMappings, autoMapping)
         .discriminator(discriminator)
         .build();

@@ -78,19 +78,25 @@ public class XMLMapperBuilder extends BaseBuilder {
   }
 
   /**
-   * 入口
+   * 入口 - 解析 mapper.xml 文件
+   *
+   * loadedResources；
    */
   public void parse() {
     // 是否已经加载该资源
     if (!configuration.isResourceLoaded(resource)) {
       // 解析 <mapper></mapper> 标签
       configurationElement(parser.evalNode("/mapper"));
+      // 添加到加载集合中
       configuration.addLoadedResource(resource);
+      // 绑定 mapperRegistry 集合
       bindMapperForNamespace();
     }
-
+    // 解析待定的 ResultMaps 集合
     parsePendingResultMaps();
+    // 解析待定的 CacheRefs 集合
     parsePendingCacheRefs();
+    // 解析待定的 statement 集合
     parsePendingStatements();
   }
 
@@ -99,7 +105,13 @@ public class XMLMapperBuilder extends BaseBuilder {
   }
 
   /**
-   *
+   * 配置 xml 中对元素；
+   * 其实就是解析 mapper.xml 文件， 并把其中对xml文件对元素对象设置到 configuration 中； 初始化集合如下：
+   * cacheRefMap；incompleteCacheRefs；
+   * caches；
+   * parameterMaps；
+   * resultMaps；incompleteResultMaps；
+   * mappedStatements； incompleteStatements；
    * @param context
    */
   private void configurationElement(XNode context) {
@@ -128,7 +140,7 @@ public class XMLMapperBuilder extends BaseBuilder {
     }
   }
 
-  /** 解析每个节点 */
+  /** 循环解析每个节点 */
   private void buildStatementFromContext(List<XNode> list) {
     if (configuration.getDatabaseId() != null) {
       buildStatementFromContext(list, configuration.getDatabaseId());
@@ -153,20 +165,27 @@ public class XMLMapperBuilder extends BaseBuilder {
       // 创建 XMLStatementBuilder 对象
       final XMLStatementBuilder statementParser = new XMLStatementBuilder(configuration, builderAssistant, context, requiredDatabaseId);
       try {
-        //
+        // 解析 sql语句
         statementParser.parseStatementNode();
       } catch (IncompleteElementException e) {
+        // 添加到 未完成对statement 集合中
         configuration.addIncompleteStatement(statementParser);
       }
     }
   }
 
+  /**
+   * 解析前面待定的 ResultMaps 集合
+   */
   private void parsePendingResultMaps() {
+    // 待定 ResultMaps 集合
     Collection<ResultMapResolver> incompleteResultMaps = configuration.getIncompleteResultMaps();
+    // 加锁， 解析
     synchronized (incompleteResultMaps) {
       Iterator<ResultMapResolver> iter = incompleteResultMaps.iterator();
       while (iter.hasNext()) {
         try {
+          // 解析
           iter.next().resolve();
           iter.remove();
         } catch (IncompleteElementException e) {
@@ -176,6 +195,9 @@ public class XMLMapperBuilder extends BaseBuilder {
     }
   }
 
+  /**
+   * 解析待定的 CacheRefs 集合
+   */
   private void parsePendingCacheRefs() {
     Collection<CacheRefResolver> incompleteCacheRefs = configuration.getIncompleteCacheRefs();
     synchronized (incompleteCacheRefs) {
@@ -191,12 +213,16 @@ public class XMLMapperBuilder extends BaseBuilder {
     }
   }
 
+  /**
+   * 解析待定的 Statements 集合
+   */
   private void parsePendingStatements() {
     Collection<XMLStatementBuilder> incompleteStatements = configuration.getIncompleteStatements();
     synchronized (incompleteStatements) {
       Iterator<XMLStatementBuilder> iter = incompleteStatements.iterator();
       while (iter.hasNext()) {
         try {
+          // 执行解析 select|update|insert|delete 标签
           iter.next().parseStatementNode();
           iter.remove();
         } catch (IncompleteElementException e) {
@@ -484,20 +510,28 @@ public class XMLMapperBuilder extends BaseBuilder {
     }
   }
 
+  /**
+   * 绑定 Mapper 接口到 MapperRegistry 集合中
+   */
   private void bindMapperForNamespace() {
+    // 命名空间
     String namespace = builderAssistant.getCurrentNamespace();
+    //
     if (namespace != null) {
       Class<?> boundType = null;
       try {
+        // 获得 mapper.xml 接口的 class 对象
         boundType = Resources.classForName(namespace);
       } catch (ClassNotFoundException e) {
         //ignore, bound type is not required
       }
       if (boundType != null) {
+        // 如果没有注册； 添加资源到 loadedResource集合； 添加 Mapper 接口到 mapperRegistry 集合中
         if (!configuration.hasMapper(boundType)) {
           // Spring may not know the real resource name so we set a flag
           // to prevent loading again this resource from the mapper interface
           // look at MapperAnnotationBuilder#loadXmlResource
+
           configuration.addLoadedResource("namespace:" + namespace);
           configuration.addMapper(boundType);
         }

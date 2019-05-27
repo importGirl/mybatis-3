@@ -100,6 +100,7 @@ public class SqlSessionFactoryBuilder {
     }
   }
 
+
   public SqlSessionFactory build(Configuration config) {
     return new DefaultSqlSessionFactory(config);
   }
