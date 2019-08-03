@@ -90,6 +90,7 @@ public class XMLIncludeTransformer {
         // 设置节点到值
         for (int i = 0; i < attributes.getLength(); i++) {
           Node attr = attributes.item(i);
+          //// 替换 ${} 占位符 ////
           attr.setNodeValue(PropertyParser.parse(attr.getNodeValue(), variablesContext));
         }
       }

@@ -21,11 +21,15 @@ import org.apache.ibatis.mapping.SqlSource;
 import org.apache.ibatis.session.Configuration;
 
 /**
+ * 处理动态sql； 执行sql时动态生成
  * @author Clinton Begin
  */
 public class DynamicSqlSource implements SqlSource {
 
   private final Configuration configuration;
+  /**
+   * rootSqlNode 通常是一个MixedSqlNode对象；保存了所有的SqlNode;
+   */
   private final SqlNode rootSqlNode;
 
   public DynamicSqlSource(Configuration configuration, SqlNode rootSqlNode) {
@@ -33,13 +37,22 @@ public class DynamicSqlSource implements SqlSource {
     this.rootSqlNode = rootSqlNode;
   }
 
+  /**
+   * 动态生成sql
+   * @param parameterObject
+   * @return
+   */
   @Override
   public BoundSql getBoundSql(Object parameterObject) {
+
     DynamicContext context = new DynamicContext(configuration, parameterObject);
+    // 逐一调用各种sqlNode， 生成sql； sql存放在content中
     rootSqlNode.apply(context);
     SqlSourceBuilder sqlSourceParser = new SqlSourceBuilder(configuration);
     Class<?> parameterType = parameterObject == null ? Object.class : parameterObject.getClass();
+    // 替换变量#{} 为 ？
     SqlSource sqlSource = sqlSourceParser.parse(context.getSql(), parameterType, context.getBindings());
+    //
     BoundSql boundSql = sqlSource.getBoundSql(parameterObject);
     context.getBindings().forEach(boundSql::setAdditionalParameter);
     return boundSql;

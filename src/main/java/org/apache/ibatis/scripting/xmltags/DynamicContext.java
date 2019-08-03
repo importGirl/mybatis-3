@@ -15,18 +15,18 @@
  */
 package org.apache.ibatis.scripting.xmltags;
 
+import ognl.OgnlContext;
+import ognl.OgnlRuntime;
+import ognl.PropertyAccessor;
+import org.apache.ibatis.reflection.MetaObject;
+import org.apache.ibatis.session.Configuration;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.StringJoiner;
 
-import ognl.OgnlContext;
-import ognl.OgnlRuntime;
-import ognl.PropertyAccessor;
-
-import org.apache.ibatis.reflection.MetaObject;
-import org.apache.ibatis.session.Configuration;
-
 /**
+ * 动态sql； 每次执行的sql操作时， 记录动态sql处理后的最终sql字符串
  * @author Clinton Begin
  */
 public class DynamicContext {
@@ -35,6 +35,7 @@ public class DynamicContext {
   public static final String DATABASE_ID_KEY = "_databaseId";
 
   static {
+    // 设置OGNL 的属性访问器
     OgnlRuntime.setPropertyAccessor(ContextMap.class, new ContextAccessor());
   }
 
@@ -57,10 +58,19 @@ public class DynamicContext {
     return bindings;
   }
 
+  /**
+   * 向Binding 属性中，添加新的键值对
+   * @param name
+   * @param value
+   */
   public void bind(String name, Object value) {
     bindings.put(name, value);
   }
 
+  /**
+   * 向Builder 中添加sql 段
+   * @param sql
+   */
   public void appendSql(String sql) {
     sqlBuilder.add(sql);
   }
@@ -70,9 +80,13 @@ public class DynamicContext {
   }
 
   public int getUniqueNumber() {
+    // 先返回再自增
     return uniqueNumber++;
   }
 
+  /**
+   * 上下文参数集合；根据字段名获取属性值
+   */
   static class ContextMap extends HashMap<String, Object> {
     private static final long serialVersionUID = 2977601501966151582L;
 
@@ -98,6 +112,9 @@ public class DynamicContext {
     }
   }
 
+  /**
+   * 上下文访问器
+   */
   static class ContextAccessor implements PropertyAccessor {
 
     @Override

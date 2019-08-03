@@ -29,6 +29,12 @@ import org.apache.ibatis.io.Resources;
  */
 public class OgnlClassResolver extends DefaultClassResolver {
 
+  /**
+   * 获得类对象
+   * @param className
+   * @return
+   * @throws ClassNotFoundException
+   */
   @Override
   protected Class toClassForName(String className) throws ClassNotFoundException {
     return Resources.classForName(className);

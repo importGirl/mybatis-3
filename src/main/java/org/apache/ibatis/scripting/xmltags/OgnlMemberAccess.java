@@ -15,18 +15,17 @@
  */
 package org.apache.ibatis.scripting.xmltags;
 
+import ognl.MemberAccess;
+import org.apache.ibatis.reflection.Reflector;
+
 import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Member;
 import java.util.Map;
 
-import ognl.MemberAccess;
-
-import org.apache.ibatis.reflection.Reflector;
-
 /**
  * The {@link MemberAccess} class that based on <a href=
  * 'https://github.com/jkuhnert/ognl/blob/OGNL_3_2_1/src/java/ognl/DefaultMemberAccess.java'>DefaultMemberAccess</a>.
- *
+ * OGNL 成员访问器实现类
  * @author Kazuki Shimizu
  * @since 3.5.0
  *
@@ -36,6 +35,7 @@ import org.apache.ibatis.reflection.Reflector;
  */
 class OgnlMemberAccess implements MemberAccess {
 
+  // 是否可以修改属性
   private final boolean canControlMemberAccessible;
 
   OgnlMemberAccess() {
@@ -45,20 +45,34 @@ class OgnlMemberAccess implements MemberAccess {
   @Override
   public Object setup(Map context, Object target, Member member, String propertyName) {
     Object result = null;
+    // 是否可修改
     if (isAccessible(context, target, member, propertyName)) {
+      // 强转为 AccessibleObject（可设置私有属性被访问）
       AccessibleObject accessible = (AccessibleObject) member;
+      // 不可访问，设置为可访问
       if (!accessible.isAccessible()) {
+        // 标记原来是不可访问的
         result = Boolean.FALSE;
+        // 设置为可访问
         accessible.setAccessible(true);
       }
     }
     return result;
   }
 
+  /**
+   * 恢复访问级别 state
+   * @param context
+   * @param target
+   * @param member
+   * @param propertyName
+   * @param state
+   */
   @Override
   public void restore(Map context, Object target, Member member, String propertyName,
       Object state) {
     if (state != null) {
+      // 重新设置
       ((AccessibleObject) member).setAccessible((Boolean) state);
     }
   }

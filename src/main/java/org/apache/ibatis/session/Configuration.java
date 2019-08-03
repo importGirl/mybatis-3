@@ -107,6 +107,7 @@ public class Configuration {
   protected AutoMappingBehavior autoMappingBehavior = AutoMappingBehavior.PARTIAL;
   protected AutoMappingUnknownColumnBehavior autoMappingUnknownColumnBehavior = AutoMappingUnknownColumnBehavior.NONE;
 
+  // 配置文件属性
   protected Properties variables = new Properties();
   protected ReflectorFactory reflectorFactory = new DefaultReflectorFactory();
   protected ObjectFactory objectFactory = new DefaultObjectFactory();
@@ -124,26 +125,34 @@ public class Configuration {
    */
   protected Class<?> configurationFactory;
 
+  // Mapper（dao）接口注册器
   protected final MapperRegistry mapperRegistry = new MapperRegistry(this);
   protected final InterceptorChain interceptorChain = new InterceptorChain();
   protected final TypeHandlerRegistry typeHandlerRegistry = new TypeHandlerRegistry();
   protected final TypeAliasRegistry typeAliasRegistry = new TypeAliasRegistry();
+  // 数据库语言注册器
   protected final LanguageDriverRegistry languageRegistry = new LanguageDriverRegistry();
 
+  // 继承 HashMap , 保存相同的key 时抛出异常
   protected final Map<String, MappedStatement> mappedStatements = new StrictMap<MappedStatement>("Mapped Statements collection")
       .conflictMessageProducer((savedValue, targetValue) ->
           ". please check " + savedValue.getResource() + " and " + targetValue.getResource());
+  // Mapper 缓存映射 key: namespace+class value: Cache 对象
   protected final Map<String, Cache> caches = new StrictMap<>("Caches collection");
   protected final Map<String, ResultMap> resultMaps = new StrictMap<>("Result Maps collection");
   protected final Map<String, ParameterMap> parameterMaps = new StrictMap<>("Parameter Maps collection");
   protected final Map<String, KeyGenerator> keyGenerators = new StrictMap<>("Key Generators collection");
 
+  // Mapper.xml文件 资源路径集合
   protected final Set<String> loadedResources = new HashSet<>();
   protected final Map<String, XNode> sqlFragments = new StrictMap<>("XML fragments parsed from previous mappers");
 
+  ////////////////////////////////////  A 依赖 B, B 依赖 C; A、B都要等C加载完成， 才能进行加载 ////////////////////////////////
   protected final Collection<XMLStatementBuilder> incompleteStatements = new LinkedList<>();
+  // 未进行加载的缓存对象
   protected final Collection<CacheRefResolver> incompleteCacheRefs = new LinkedList<>();
   protected final Collection<ResultMapResolver> incompleteResultMaps = new LinkedList<>();
+  // 未完成的方法集合
   protected final Collection<MethodResolver> incompleteMethods = new LinkedList<>();
 
   /*
@@ -188,6 +197,7 @@ public class Configuration {
     typeAliasRegistry.registerAlias("CGLIB", CglibProxyFactory.class);
     typeAliasRegistry.registerAlias("JAVASSIST", JavassistProxyFactory.class);
 
+    // 初始化语言驱动类
     languageRegistry.setDefaultDriverClass(XMLLanguageDriver.class);
     languageRegistry.register(RawLanguageDriver.class);
   }
@@ -519,6 +529,7 @@ public class Configuration {
   }
 
   /**
+   * 大多数情况使用默认的 XmlLanuageDriver
    * @since 3.5.1
    */
   public LanguageDriver getLanguageDriver(Class<? extends LanguageDriver> langClass) {

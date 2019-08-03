@@ -15,11 +15,6 @@
  */
 package org.apache.ibatis.scripting.xmltags;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import org.apache.ibatis.builder.BaseBuilder;
 import org.apache.ibatis.builder.BuilderException;
 import org.apache.ibatis.mapping.SqlSource;
@@ -29,7 +24,13 @@ import org.apache.ibatis.session.Configuration;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 /**
+ * 注解中写sql脚本解析类
  * @author Clinton Begin
  */
 public class XMLScriptBuilder extends BaseBuilder {
@@ -37,6 +38,8 @@ public class XMLScriptBuilder extends BaseBuilder {
   private final XNode context;
   private boolean isDynamic;
   private final Class<?> parameterType;
+
+  // insert/update/delete/select 内可用标签集合
   private final Map<String, NodeHandler> nodeHandlerMap = new HashMap<>();
 
   public XMLScriptBuilder(Configuration configuration, XNode context) {
@@ -67,13 +70,20 @@ public class XMLScriptBuilder extends BaseBuilder {
     MixedSqlNode rootSqlNode = parseDynamicTags(context);
     SqlSource sqlSource;
     if (isDynamic) {
+      // 动态 sql
       sqlSource = new DynamicSqlSource(configuration, rootSqlNode);
     } else {
+      // 静态 sql
       sqlSource = new RawSqlSource(configuration, rootSqlNode, parameterType);
     }
     return sqlSource;
   }
 
+  /**
+   *
+   * @param node
+   * @return
+   */
   protected MixedSqlNode parseDynamicTags(XNode node) {
     List<SqlNode> contents = new ArrayList<>();
     NodeList children = node.getNode().getChildNodes();
@@ -101,10 +111,22 @@ public class XMLScriptBuilder extends BaseBuilder {
     return new MixedSqlNode(contents);
   }
 
+  /**
+   * Node处理器接口;
+   * 创建 SqlNode
+   */
   private interface NodeHandler {
+    /**
+     *
+     * @param nodeToHandle    要处理的XNode节点
+     * @param targetContents  XNode处理成 SqlNode 存储到targetContents
+     */
     void handleNode(XNode nodeToHandle, List<SqlNode> targetContents);
   }
 
+  /**
+   *  <bind></bind>
+   */
   private class BindHandler implements NodeHandler {
     public BindHandler() {
       // Prevent Synthetic Access
@@ -119,6 +141,9 @@ public class XMLScriptBuilder extends BaseBuilder {
     }
   }
 
+  /**
+   * <trim></trim> 标签处理器
+   */
   private class TrimHandler implements NodeHandler {
     public TrimHandler() {
       // Prevent Synthetic Access
@@ -136,6 +161,9 @@ public class XMLScriptBuilder extends BaseBuilder {
     }
   }
 
+  /**
+   * <where></where>标签处理器
+   */
   private class WhereHandler implements NodeHandler {
     public WhereHandler() {
       // Prevent Synthetic Access
@@ -149,6 +177,9 @@ public class XMLScriptBuilder extends BaseBuilder {
     }
   }
 
+  /**
+   * <set></set> 标签处理器
+   */
   private class SetHandler implements NodeHandler {
     public SetHandler() {
       // Prevent Synthetic Access
@@ -162,6 +193,9 @@ public class XMLScriptBuilder extends BaseBuilder {
     }
   }
 
+  /**
+   * <forearch></forearch> 标签处理器
+   */
   private class ForEachHandler implements NodeHandler {
     public ForEachHandler() {
       // Prevent Synthetic Access
@@ -181,6 +215,9 @@ public class XMLScriptBuilder extends BaseBuilder {
     }
   }
 
+  /**
+   * <if></if>
+   */
   private class IfHandler implements NodeHandler {
     public IfHandler() {
       // Prevent Synthetic Access
@@ -195,6 +232,9 @@ public class XMLScriptBuilder extends BaseBuilder {
     }
   }
 
+  /**
+   * <otherwise></otherwise>
+   */
   private class OtherwiseHandler implements NodeHandler {
     public OtherwiseHandler() {
       // Prevent Synthetic Access
@@ -207,6 +247,9 @@ public class XMLScriptBuilder extends BaseBuilder {
     }
   }
 
+  /**
+   * <choose></choose>
+   */
   private class ChooseHandler implements NodeHandler {
     public ChooseHandler() {
       // Prevent Synthetic Access

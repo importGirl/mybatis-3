@@ -15,38 +15,58 @@
  */
 package org.apache.ibatis.scripting.xmltags;
 
+import org.apache.ibatis.builder.BuilderException;
+
 import java.lang.reflect.Array;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.ibatis.builder.BuilderException;
-
 /**
+ * OGNL表达式计算器
  * @author Clinton Begin
  */
 public class ExpressionEvaluator {
 
+  /**
+   * 判断表达式的值是否为 true
+   * @param expression
+   * @param parameterObject
+   * @return
+   */
   public boolean evaluateBoolean(String expression, Object parameterObject) {
+    // 获得表达式值
     Object value = OgnlCache.getValue(expression, parameterObject);
+    // boolean
     if (value instanceof Boolean) {
       return (Boolean) value;
     }
+    // number
     if (value instanceof Number) {
       return new BigDecimal(String.valueOf(value)).compareTo(BigDecimal.ZERO) != 0;
     }
+    // 对象
     return value != null;
   }
 
+  /**
+   * 获得表达式为对应的集合
+   * @param expression
+   * @param parameterObject
+   * @return
+   */
   public Iterable<?> evaluateIterable(String expression, Object parameterObject) {
+    // 获得值
     Object value = OgnlCache.getValue(expression, parameterObject);
     if (value == null) {
       throw new BuilderException("The expression '" + expression + "' evaluated to a null value.");
     }
+    // 是否为集合
     if (value instanceof Iterable) {
       return (Iterable<?>) value;
     }
+    // 为数组； 转化为List返回
     if (value.getClass().isArray()) {
       // the array may be primitive, so Arrays.asList() may throw
       // a ClassCastException (issue 209).  Do the work manually
@@ -59,6 +79,7 @@ public class ExpressionEvaluator {
       }
       return answer;
     }
+    // 为 Map
     if (value instanceof Map) {
       return ((Map) value).entrySet();
     }

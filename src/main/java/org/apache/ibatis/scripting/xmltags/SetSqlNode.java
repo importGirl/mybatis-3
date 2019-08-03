@@ -15,12 +15,13 @@
  */
 package org.apache.ibatis.scripting.xmltags;
 
+import org.apache.ibatis.session.Configuration;
+
 import java.util.Collections;
 import java.util.List;
 
-import org.apache.ibatis.session.Configuration;
-
 /**
+ * 基于<Trim/> 实现
  * @author Clinton Begin
  */
 public class SetSqlNode extends TrimSqlNode {

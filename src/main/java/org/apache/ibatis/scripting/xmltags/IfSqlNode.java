@@ -31,7 +31,9 @@ public class IfSqlNode implements SqlNode {
 
   @Override
   public boolean apply(DynamicContext context) {
+    // 是否符合条件
     if (evaluator.evaluateBoolean(test, context.getBindings())) {
+      // 执行
       contents.apply(context);
       return true;
     }

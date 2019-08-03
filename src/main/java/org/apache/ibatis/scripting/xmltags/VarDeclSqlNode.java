@@ -16,6 +16,7 @@
 package org.apache.ibatis.scripting.xmltags;
 
 /**
+ * <bind/> 标签 sqlNode实现类
  * @author Frank D. Martinez [mnesarco]
  */
 public class VarDeclSqlNode implements SqlNode {
@@ -30,7 +31,9 @@ public class VarDeclSqlNode implements SqlNode {
 
   @Override
   public boolean apply(DynamicContext context) {
+    // 获取到值
     final Object value = OgnlCache.getValue(expression, context.getBindings());
+    // 绑定到上下文
     context.bind(name, value);
     return true;
   }

@@ -15,16 +15,17 @@
  */
 package org.apache.ibatis.scripting.xmltags;
 
+import ognl.Ognl;
+import ognl.OgnlException;
+import org.apache.ibatis.builder.BuilderException;
+
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import ognl.Ognl;
-import ognl.OgnlException;
-
-import org.apache.ibatis.builder.BuilderException;
-
 /**
  * Caches OGNL parsed expressions.
+ *
+ * 基于缓存的ognl表达式
  *
  * @author Eduardo Macarron
  *
@@ -32,23 +33,42 @@ import org.apache.ibatis.builder.BuilderException;
  */
 public final class OgnlCache {
 
+  // 成员访问器 单例
   private static final OgnlMemberAccess MEMBER_ACCESS = new OgnlMemberAccess();
+  // 类解析器  单例
   private static final OgnlClassResolver CLASS_RESOLVER = new OgnlClassResolver();
+  /**
+   * 表达式映射
+   */
   private static final Map<String, Object> expressionCache = new ConcurrentHashMap<>();
 
   private OgnlCache() {
     // Prevent Instantiation of Static Class
   }
 
+  /**
+   * 获取表达式对应的值
+   * @param expression
+   * @param root
+   * @return
+   */
   public static Object getValue(String expression, Object root) {
     try {
+      // 创建上下文
       Map context = Ognl.createDefaultContext(root, MEMBER_ACCESS, CLASS_RESOLVER, null);
+      //
       return Ognl.getValue(parseExpression(expression), context, root);
     } catch (OgnlException e) {
       throw new BuilderException("Error evaluating expression '" + expression + "'. Cause: " + e, e);
     }
   }
 
+  /**
+   * 解析表达式
+   * @param expression
+   * @return
+   * @throws OgnlException
+   */
   private static Object parseExpression(String expression) throws OgnlException {
     Object node = expressionCache.get(expression);
     if (node == null) {

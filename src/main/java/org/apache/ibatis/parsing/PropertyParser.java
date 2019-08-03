@@ -18,6 +18,8 @@ package org.apache.ibatis.parsing;
 import java.util.Properties;
 
 /**
+ *
+ *
  * @author Clinton Begin
  * @author Kazuki Shimizu
  */
@@ -63,7 +65,7 @@ public class PropertyParser {
   }
 
   /**
-   * 变量处理类
+   * 变量处理类 ${}
    */
   private static class VariableTokenHandler implements TokenHandler {
     private final Properties variables;
@@ -80,6 +82,11 @@ public class PropertyParser {
       return (variables == null) ? defaultValue : variables.getProperty(key, defaultValue);
     }
 
+    /**
+     * 处理 ${} 变量
+     * @param content token 字符串
+     * @return
+     */
     @Override
     public String handleToken(String content) {
       if (variables != null) {

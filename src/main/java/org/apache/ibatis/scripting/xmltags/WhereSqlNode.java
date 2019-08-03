@@ -15,12 +15,13 @@
  */
 package org.apache.ibatis.scripting.xmltags;
 
+import org.apache.ibatis.session.Configuration;
+
 import java.util.Arrays;
 import java.util.List;
 
-import org.apache.ibatis.session.Configuration;
-
 /**
+ * <where/> 实际使用 <trim/> 实现
  * @author Clinton Begin
  */
 public class WhereSqlNode extends TrimSqlNode {

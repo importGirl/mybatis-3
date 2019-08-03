@@ -16,12 +16,14 @@
 package org.apache.ibatis.parsing;
 
 /**
+ * 解析占位符（#{}、${})的通用工具类
  * @author Clinton Begin
  */
 public class GenericTokenParser {
 
   private final String openToken;
   private final String closeToken;
+  // 决定如何处理占位符
   private final TokenHandler handler;
 
   public GenericTokenParser(String openToken, String closeToken, TokenHandler handler) {
@@ -81,6 +83,7 @@ public class GenericTokenParser {
           builder.append(src, start, src.length - start);
           offset = src.length;
         } else {
+          //// 核心 ////
           builder.append(handler.handleToken(expression.toString()));
           offset = end + closeToken.length();
         }

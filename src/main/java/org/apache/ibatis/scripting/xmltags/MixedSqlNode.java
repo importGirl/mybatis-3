@@ -18,6 +18,7 @@ package org.apache.ibatis.scripting.xmltags;
 import java.util.List;
 
 /**
+ * 混合所有对 SqlNode； sqlNode的解析入口
  * @author Clinton Begin
  */
 public class MixedSqlNode implements SqlNode {
@@ -29,6 +30,7 @@ public class MixedSqlNode implements SqlNode {
 
   @Override
   public boolean apply(DynamicContext context) {
+    // 遍历每个sq   lNode执行解析方法
     contents.forEach(node -> node.apply(context));
     return true;
   }

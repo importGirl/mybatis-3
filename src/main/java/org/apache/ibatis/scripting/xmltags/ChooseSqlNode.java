@@ -18,24 +18,33 @@ package org.apache.ibatis.scripting.xmltags;
 import java.util.List;
 
 /**
+ * 相当于java switch 关键字；
  * @author Clinton Begin
  */
 public class ChooseSqlNode implements SqlNode {
-  private final SqlNode defaultSqlNode;
-  private final List<SqlNode> ifSqlNodes;
+  private final SqlNode defaultSqlNode;     // <otherwise/> 对应对sqlNode节点
+  private final List<SqlNode> ifSqlNodes;   // <when/> sqlNode列表
 
   public ChooseSqlNode(List<SqlNode> ifSqlNodes, SqlNode defaultSqlNode) {
     this.ifSqlNodes = ifSqlNodes;
     this.defaultSqlNode = defaultSqlNode;
   }
 
+  /**
+   * switch() case break; default;
+   * @param context
+   * @return
+   */
   @Override
   public boolean apply(DynamicContext context) {
+    // 遍历
     for (SqlNode sqlNode : ifSqlNodes) {
+      // 执行<when/>标签
       if (sqlNode.apply(context)) {
         return true;
       }
     }
+    // 执行 default
     if (defaultSqlNode != null) {
       defaultSqlNode.apply(context);
       return true;

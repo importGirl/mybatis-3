@@ -87,7 +87,7 @@ public class XMLMapperBuilder extends BaseBuilder {
     if (!configuration.isResourceLoaded(resource)) {
       // 解析 <mapper></mapper> 标签
       configurationElement(parser.evalNode("/mapper"));
-      // 添加到加载集合中
+      // 添加到资源加载集合中
       configuration.addLoadedResource(resource);
       // 绑定 mapperRegistry 集合
       bindMapperForNamespace();
@@ -149,7 +149,7 @@ public class XMLMapperBuilder extends BaseBuilder {
   }
 
   /**
-   * 解析 sql 语句标签
+   * 解析 sql 语句标签（构建StatementMap），从上下文
    *
    * <select id="selectWithOptions" resultType="org.apache.ibatis.domain.blog.Author"
    * 		fetchSize="200" timeout="10" statementType="PREPARED" resultSetType="SCROLL_SENSITIVE" flushCache="false" useCache="false">
@@ -511,7 +511,9 @@ public class XMLMapperBuilder extends BaseBuilder {
   }
 
   /**
-   * 绑定 Mapper 接口到 MapperRegistry 集合中
+   * 绑定 Mapper 接口到 MapperRegistry 集合中;
+   * //// mybatis 注解驱动的模式 入口在这里 ////
+   * configuration.addMapper();
    */
   private void bindMapperForNamespace() {
     // 命名空间
@@ -522,6 +524,7 @@ public class XMLMapperBuilder extends BaseBuilder {
       try {
         // 获得 mapper.xml 接口的 class 对象
         boundType = Resources.classForName(namespace);
+
       } catch (ClassNotFoundException e) {
         //ignore, bound type is not required
       }
@@ -533,6 +536,8 @@ public class XMLMapperBuilder extends BaseBuilder {
           // look at MapperAnnotationBuilder#loadXmlResource
 
           configuration.addLoadedResource("namespace:" + namespace);
+          // 加载到Mapper 接口， 到Statement 集合； 如果是 使用注解的模式，加载的入口则是在这里；MapperAnnotationBuilder.parse();
+          // 如果是Mapper.xml 的模式， 这里会判断是否已经加载过了， 没有， 则会加载一次 XMLMapperBuilder.parse();
           configuration.addMapper(boundType);
         }
       }

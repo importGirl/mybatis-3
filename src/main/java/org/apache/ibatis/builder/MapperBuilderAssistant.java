@@ -336,6 +336,7 @@ public class MapperBuilderAssistant extends BaseBuilder {
     }
 
     MappedStatement statement = statementBuilder.build();
+    // 保存到 总配置类 的StatementMap 中
     configuration.addMappedStatement(statement);
     return statement;
   }
@@ -437,9 +438,11 @@ public class MapperBuilderAssistant extends BaseBuilder {
         .build();
   }
 
+  /** 将字符串解析成集合 */
   private Set<String> parseMultipleColumnNames(String columnName) {
     Set<String> columns = new HashSet<>();
     if (columnName != null) {
+      // 多个字符串，使用 ， 分隔
       if (columnName.indexOf(',') > -1) {
         StringTokenizer parser = new StringTokenizer(columnName, "{}, ", false);
         while (parser.hasMoreTokens()) {
@@ -453,6 +456,7 @@ public class MapperBuilderAssistant extends BaseBuilder {
     return columns;
   }
 
+  /** 解析组合字段名称 */
   private List<ResultMapping> parseCompositeColumnName(String columnName) {
     List<ResultMapping> composites = new ArrayList<>();
     if (columnName != null && (columnName.indexOf('=') > -1 || columnName.indexOf(',') > -1)) {
@@ -467,6 +471,7 @@ public class MapperBuilderAssistant extends BaseBuilder {
     }
     return composites;
   }
+
 
   private Class<?> resolveResultJavaType(Class<?> resultType, String property, Class<?> javaType) {
     if (javaType == null && property != null) {

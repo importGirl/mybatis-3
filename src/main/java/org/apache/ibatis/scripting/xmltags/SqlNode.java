@@ -16,8 +16,23 @@
 package org.apache.ibatis.scripting.xmltags;
 
 /**
+ * 每个XMLNode 节点都会解析成SqlNode节点
+ * NodeHandler 创建 SqlNode，
  * @author Clinton Begin
  */
 public interface SqlNode {
+
+  /**
+   *
+   * //////
+   * // 重要：只有理解该方法才能知道一个sql是怎么拼接出来的
+   * //////
+   * 将sql的处理结果， append到DynamicContext上下文中，
+   * DynamicContext 可以理解为 StringBuilder的功能；
+   * 将sql段拼接到一起，形成最终到sql；
+   *
+   * @param context
+   * @return
+   */
   boolean apply(DynamicContext context);
 }
