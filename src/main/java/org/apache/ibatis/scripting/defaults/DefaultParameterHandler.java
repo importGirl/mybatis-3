@@ -33,16 +33,21 @@ import java.sql.SQLException;
 import java.util.List;
 
 /**
+ * 默认参数处理器：主要是设置预执行语句的参数
  * @author Clinton Begin
  * @author Eduardo Macarron
  */
 public class DefaultParameterHandler implements ParameterHandler {
 
+  // 类型处理注册器
   private final TypeHandlerRegistry typeHandlerRegistry;
-
+  // MappedStatement 对象
   private final MappedStatement mappedStatement;
+  // 参数对象
   private final Object parameterObject;
+  // BoundSql 对象
   private final BoundSql boundSql;
+  // 全局配置对象
   private final Configuration configuration;
 
   public DefaultParameterHandler(MappedStatement mappedStatement, Object parameterObject, BoundSql boundSql) {
@@ -58,33 +63,50 @@ public class DefaultParameterHandler implements ParameterHandler {
     return parameterObject;
   }
 
+  /**
+   * 设置预执行语句（ps) 的占位符参数 （？）
+   * @param ps
+   */
   @Override
   public void setParameters(PreparedStatement ps) {
+    //
     ErrorContext.instance().activity("setting parameters").object(mappedStatement.getParameterMap().getId());
-
+    // 获得 变量表达式 列表
     List<ParameterMapping> parameterMappings = boundSql.getParameterMappings();
     if (parameterMappings != null) {
       for (int i = 0; i < parameterMappings.size(); i++) {
         ParameterMapping parameterMapping = parameterMappings.get(i);
+        // 输入类型参数
         if (parameterMapping.getMode() != ParameterMode.OUT) {
           Object value;
+          // 配置属性名称
           String propertyName = parameterMapping.getProperty();
+          // 是否是附加属性
           if (boundSql.hasAdditionalParameter(propertyName)) { // issue #448 ask first for additional params
             value = boundSql.getAdditionalParameter(propertyName);
-          } else if (parameterObject == null) {
+          }
+          // 参数对象
+          else if (parameterObject == null) {
             value = null;
-          } else if (typeHandlerRegistry.hasTypeHandler(parameterObject.getClass())) {
+          }
+          // 类型注册器
+          else if (typeHandlerRegistry.hasTypeHandler(parameterObject.getClass())) {
             value = parameterObject;
-          } else {
+          }
+          // 获得 parameterObject 中字段的值
+          else {
             MetaObject metaObject = configuration.newMetaObject(parameterObject);
             value = metaObject.getValue(propertyName);
           }
+
+          // jdbc类型不存在； JdbcType.OTHER
           TypeHandler typeHandler = parameterMapping.getTypeHandler();
           JdbcType jdbcType = parameterMapping.getJdbcType();
           if (value == null && jdbcType == null) {
             jdbcType = configuration.getJdbcTypeForNull();
           }
           try {
+            ////核心逻辑：//// 设置预执行语句的占位符参数（？）
             typeHandler.setParameter(ps, i + 1, value, jdbcType);
           } catch (TypeException | SQLException e) {
             throw new TypeException("Could not set parameters for mapping: " + parameterMapping + ". Cause: " + e, e);

@@ -30,14 +30,14 @@ import java.util.Map;
  * the value from).
  * <p>
  * Can also have additional parameters that are created by the dynamic language (for loops, bind...).
- *
+ * 一次执行sql的封装
  * @author Clinton Begin
  */
 
 public class BoundSql {
   private final String sql;
   /**
-   * sql变量相关属性; ParameterMapping#setParameters() 中遍历取出
+   * sql变量相关属性; DefaultParameterHandler#setParameters() 中遍历取出
    */
   private final List<ParameterMapping> parameterMappings;
   /**
@@ -45,10 +45,13 @@ public class BoundSql {
    */
   private final Object parameterObject;
   /**
-   * 占位符参数值列表； ParameterMapping#setParameters() 中遍历取出
+   * 附加参数值列表； DefaultParameterHandler#setParameters() 中遍历取出
    */
   private final Map<String, Object> additionalParameters;
-  // 元参数对象
+
+  /**
+   * 元对象
+   */
   private final MetaObject metaParameters;
 
   public BoundSql(Configuration configuration, String sql, List<ParameterMapping> parameterMappings, Object parameterObject) {

@@ -28,7 +28,7 @@ import java.lang.reflect.Modifier;
 import java.util.Map;
 
 /**
- * 处理注解形式的sql
+ * 处理注解形式的sql； @ProviderXXX
  * @author Clinton Begin
  * @author Kazuki Shimizu
  */

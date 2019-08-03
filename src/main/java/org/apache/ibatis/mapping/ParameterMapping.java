@@ -23,12 +23,15 @@ import org.apache.ibatis.type.TypeHandlerRegistry;
 import java.sql.ResultSet;
 
 /**
+ * sql 参数表达式
+ *  "#{age,javaType=int,jdbcType=NUMERIC,typeHandler=MyTypeHandler}"
  * @author Clinton Begin
  */
 public class ParameterMapping {
 
   private Configuration configuration;
 
+  // age
   private String property;
   private ParameterMode mode;
   private Class<?> javaType = Object.class;
