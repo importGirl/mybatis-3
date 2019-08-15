@@ -15,14 +15,15 @@
  */
 package org.apache.ibatis.executor;
 
-import java.lang.reflect.Array;
-import java.util.List;
-
 import org.apache.ibatis.reflection.MetaObject;
 import org.apache.ibatis.reflection.factory.ObjectFactory;
 import org.apache.ibatis.session.Configuration;
 
+import java.lang.reflect.Array;
+import java.util.List;
+
 /**
+ * 结果执行器； 把查询结果按照给定的类型（targetType）进行转换
  * @author Andrew Gustafson
  */
 public class ResultExtractor {
@@ -34,15 +35,26 @@ public class ResultExtractor {
     this.objectFactory = objectFactory;
   }
 
+  /**
+   * 查询结果类型转换
+   * @param list
+   * @param targetType
+   * @return
+   */
   public Object extractObjectFromList(List<Object> list, Class<?> targetType) {
     Object value = null;
+    // targetType 是 List 都父类
     if (targetType != null && targetType.isAssignableFrom(list.getClass())) {
       value = list;
-    } else if (targetType != null && objectFactory.isCollection(targetType)) {
+    }
+    // 集合
+    else if (targetType != null && objectFactory.isCollection(targetType)) {
       value = objectFactory.create(targetType);
       MetaObject metaObject = configuration.newMetaObject(value);
       metaObject.addAll(list);
-    } else if (targetType != null && targetType.isArray()) {
+    }
+    // 数组
+    else if (targetType != null && targetType.isArray()) {
       Class<?> arrayComponentType = targetType.getComponentType();
       Object array = Array.newInstance(arrayComponentType, list.size());
       if (arrayComponentType.isPrimitive()) {
@@ -53,7 +65,9 @@ public class ResultExtractor {
       } else {
         value = list.toArray((Object[])array);
       }
-    } else {
+    }
+    //
+    else {
       if (list != null && list.size() > 1) {
         throw new ExecutorException("Statement returned more than one row, where no more than one was expected.");
       } else if (list != null && list.size() == 1) {

@@ -43,6 +43,7 @@ public class TransactionalCache implements Cache {
 
   private static final Log log = LogFactory.getLog(TransactionalCache.class);
 
+  // ms.getCache() -二级缓存 ； 委托给cache， 进行 事务结果 都缓存缓存操作
   private final Cache delegate;
   private boolean clearOnCommit;                          // 是否提交事务后清除缓存
   private final Map<Object, Object> entriesToAddOnCommit; // 提交的事务对象的集合
@@ -136,6 +137,7 @@ public class TransactionalCache implements Cache {
   }
 
   /**
+   * 缓存事务结果到二级缓存中
    * 刷新需要缓存的事务到缓存中
    */
   private void flushPendingEntries() {

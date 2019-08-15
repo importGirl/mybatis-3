@@ -15,12 +15,6 @@
  */
 package org.apache.ibatis.executor.statement;
 
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.List;
-
 import org.apache.ibatis.cursor.Cursor;
 import org.apache.ibatis.executor.Executor;
 import org.apache.ibatis.executor.keygen.Jdbc3KeyGenerator;
@@ -32,7 +26,14 @@ import org.apache.ibatis.mapping.ResultSetType;
 import org.apache.ibatis.session.ResultHandler;
 import org.apache.ibatis.session.RowBounds;
 
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.List;
+
 /**
+ * 简单到 StatementHandler
  * @author Clinton Begin
  */
 public class SimpleStatementHandler extends BaseStatementHandler {
@@ -47,11 +48,17 @@ public class SimpleStatementHandler extends BaseStatementHandler {
     Object parameterObject = boundSql.getParameterObject();
     KeyGenerator keyGenerator = mappedStatement.getKeyGenerator();
     int rows;
+    // Jdbc3KeyGenerator 类型
     if (keyGenerator instanceof Jdbc3KeyGenerator) {
+      // 执行写操作
       statement.execute(sql, Statement.RETURN_GENERATED_KEYS);
+      // 获得更新数量
       rows = statement.getUpdateCount();
+      // 执行 keyGenerator 后置处理逻辑
       keyGenerator.processAfter(executor, mappedStatement, statement, parameterObject);
-    } else if (keyGenerator instanceof SelectKeyGenerator) {
+    }
+    // SelectKeyGenerator 类型
+    else if (keyGenerator instanceof SelectKeyGenerator) {
       statement.execute(sql);
       rows = statement.getUpdateCount();
       keyGenerator.processAfter(executor, mappedStatement, statement, parameterObject);
@@ -65,25 +72,37 @@ public class SimpleStatementHandler extends BaseStatementHandler {
   @Override
   public void batch(Statement statement) throws SQLException {
     String sql = boundSql.getSql();
+
     statement.addBatch(sql);
   }
 
   @Override
   public <E> List<E> query(Statement statement, ResultHandler resultHandler) throws SQLException {
     String sql = boundSql.getSql();
+    // 执行查询
     statement.execute(sql);
+    // 处理返回结果
     return resultSetHandler.handleResultSets(statement);
   }
 
   @Override
   public <E> Cursor<E> queryCursor(Statement statement) throws SQLException {
     String sql = boundSql.getSql();
+    // 执行查询
     statement.execute(sql);
+    // 处理 cursor 查询返回结果
     return resultSetHandler.handleCursorResultSets(statement);
   }
 
+  /**
+   * 创建 statement
+   * @param connection
+   * @return
+   * @throws SQLException
+   */
   @Override
   protected Statement instantiateStatement(Connection connection) throws SQLException {
+    //
     if (mappedStatement.getResultSetType() == ResultSetType.DEFAULT) {
       return connection.createStatement();
     } else {
@@ -91,6 +110,10 @@ public class SimpleStatementHandler extends BaseStatementHandler {
     }
   }
 
+  /**
+   * statement 不支持预占语句， 所以是空实现
+   * @param statement
+   */
   @Override
   public void parameterize(Statement statement) {
     // N/A

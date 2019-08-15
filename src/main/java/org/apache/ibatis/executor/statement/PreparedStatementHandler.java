@@ -15,13 +15,6 @@
  */
 package org.apache.ibatis.executor.statement;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.List;
-
 import org.apache.ibatis.cursor.Cursor;
 import org.apache.ibatis.executor.Executor;
 import org.apache.ibatis.executor.keygen.Jdbc3KeyGenerator;
@@ -32,7 +25,11 @@ import org.apache.ibatis.mapping.ResultSetType;
 import org.apache.ibatis.session.ResultHandler;
 import org.apache.ibatis.session.RowBounds;
 
+import java.sql.*;
+import java.util.List;
+
 /**
+ *
  * @author Clinton Begin
  */
 public class PreparedStatementHandler extends BaseStatementHandler {
@@ -58,6 +55,14 @@ public class PreparedStatementHandler extends BaseStatementHandler {
     ps.addBatch();
   }
 
+  /**
+   * 转换成 PreparedStatement ； 再执行操作
+   * @param statement
+   * @param resultHandler
+   * @param <E>
+   * @return
+   * @throws SQLException
+   */
   @Override
   public <E> List<E> query(Statement statement, ResultHandler resultHandler) throws SQLException {
     PreparedStatement ps = (PreparedStatement) statement;
@@ -72,9 +77,16 @@ public class PreparedStatementHandler extends BaseStatementHandler {
     return resultSetHandler.handleCursorResultSets(ps);
   }
 
+  /**
+   * 初始化对象
+   * @param connection
+   * @return
+   * @throws SQLException
+   */
   @Override
   protected Statement instantiateStatement(Connection connection) throws SQLException {
     String sql = boundSql.getSql();
+    // Jdbc3KeyGenerator 类型
     if (mappedStatement.getKeyGenerator() instanceof Jdbc3KeyGenerator) {
       String[] keyColumnNames = mappedStatement.getKeyColumns();
       if (keyColumnNames == null) {
@@ -82,13 +94,20 @@ public class PreparedStatementHandler extends BaseStatementHandler {
       } else {
         return connection.prepareStatement(sql, keyColumnNames);
       }
-    } else if (mappedStatement.getResultSetType() == ResultSetType.DEFAULT) {
+    }
+    // 默认
+    else if (mappedStatement.getResultSetType() == ResultSetType.DEFAULT) {
       return connection.prepareStatement(sql);
     } else {
       return connection.prepareStatement(sql, mappedStatement.getResultSetType().getValue(), ResultSet.CONCUR_READ_ONLY);
     }
   }
 
+  /**
+   * 设置预处理sql的占位符参数
+   * @param statement
+   * @throws SQLException
+   */
   @Override
   public void parameterize(Statement statement) throws SQLException {
     parameterHandler.setParameters((PreparedStatement) statement);

@@ -15,27 +15,44 @@
  */
 package org.apache.ibatis.executor.statement;
 
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.List;
-
 import org.apache.ibatis.cursor.Cursor;
 import org.apache.ibatis.executor.parameter.ParameterHandler;
 import org.apache.ibatis.mapping.BoundSql;
 import org.apache.ibatis.session.ResultHandler;
+
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.List;
 
 /**
  * @author Clinton Begin
  */
 public interface StatementHandler {
 
+  /**
+   * 准备操作， 可以理解成创建Statement 对象
+   * @param connection
+   * @param transactionTimeout
+   * @return
+   * @throws SQLException
+   */
   Statement prepare(Connection connection, Integer transactionTimeout)
       throws SQLException;
 
+  /**
+   * 设置statement 对象的参数
+   * @param statement
+   * @throws SQLException
+   */
   void parameterize(Statement statement)
       throws SQLException;
 
+  /**
+   * 添加statement 对象的批量操作
+   * @param statement
+   * @throws SQLException
+   */
   void batch(Statement statement)
       throws SQLException;
 
@@ -48,8 +65,16 @@ public interface StatementHandler {
   <E> Cursor<E> queryCursor(Statement statement)
       throws SQLException;
 
+  /**
+   * boundSql
+   * @return
+   */
   BoundSql getBoundSql();
 
+  /**
+   * 参数处理器
+   * @return
+   */
   ParameterHandler getParameterHandler();
 
 }

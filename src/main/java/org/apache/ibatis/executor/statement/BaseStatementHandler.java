@@ -15,10 +15,6 @@
  */
 package org.apache.ibatis.executor.statement;
 
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.sql.Statement;
-
 import org.apache.ibatis.executor.ErrorContext;
 import org.apache.ibatis.executor.Executor;
 import org.apache.ibatis.executor.ExecutorException;
@@ -33,7 +29,12 @@ import org.apache.ibatis.session.ResultHandler;
 import org.apache.ibatis.session.RowBounds;
 import org.apache.ibatis.type.TypeHandlerRegistry;
 
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.sql.Statement;
+
 /**
+ * StatementHandler 基类
  * @author Clinton Begin
  */
 public abstract class BaseStatementHandler implements StatementHandler {
@@ -44,8 +45,11 @@ public abstract class BaseStatementHandler implements StatementHandler {
   protected final ResultSetHandler resultSetHandler;
   protected final ParameterHandler parameterHandler;
 
+  // 执行器
   protected final Executor executor;
+  //
   protected final MappedStatement mappedStatement;
+  //
   protected final RowBounds rowBounds;
 
   protected BoundSql boundSql;
@@ -58,15 +62,17 @@ public abstract class BaseStatementHandler implements StatementHandler {
 
     this.typeHandlerRegistry = configuration.getTypeHandlerRegistry();
     this.objectFactory = configuration.getObjectFactory();
-
+    // boundSql == null， 一般为ddl操作， 则先获得自增主键， 再创建BoundSql 对象； SimpleExecutor#doUpdate() 方法
     if (boundSql == null) { // issue #435, get the key before calculating the statement
+      // 获得自增主键
       generateKeys(parameterObject);
+      // 创建 BoundSql
       boundSql = mappedStatement.getBoundSql(parameterObject);
     }
-
     this.boundSql = boundSql;
-
+    // 创建paramterHandler
     this.parameterHandler = configuration.newParameterHandler(mappedStatement, parameterObject, boundSql);
+    // 创建resultSetHandler
     this.resultSetHandler = configuration.newResultSetHandler(executor, mappedStatement, rowBounds, parameterHandler, resultHandler, boundSql);
   }
 
@@ -80,19 +86,34 @@ public abstract class BaseStatementHandler implements StatementHandler {
     return parameterHandler;
   }
 
+  /**
+   * 预处理 statment
+   * - 创建 statement
+   * - 设置超时时间
+   * - 设置查询行数
+   * @param connection
+   * @param transactionTimeout
+   * @return
+   * @throws SQLException
+   */
   @Override
   public Statement prepare(Connection connection, Integer transactionTimeout) throws SQLException {
     ErrorContext.instance().sql(boundSql.getSql());
     Statement statement = null;
     try {
+      // 创建statement
       statement = instantiateStatement(connection);
+      // 设置超时时间
       setStatementTimeout(statement, transactionTimeout);
+      // 设置查询行数
       setFetchSize(statement);
       return statement;
     } catch (SQLException e) {
+      // 关闭 statement
       closeStatement(statement);
       throw e;
     } catch (Exception e) {
+      // 关闭 statement
       closeStatement(statement);
       throw new ExecutorException("Error preparing statement.  Cause: " + e, e);
     }
@@ -100,6 +121,12 @@ public abstract class BaseStatementHandler implements StatementHandler {
 
   protected abstract Statement instantiateStatement(Connection connection) throws SQLException;
 
+  /**
+   * 超时时间
+   * @param stmt
+   * @param transactionTimeout
+   * @throws SQLException
+   */
   protected void setStatementTimeout(Statement stmt, Integer transactionTimeout) throws SQLException {
     Integer queryTimeout = null;
     if (mappedStatement.getTimeout() != null) {
@@ -113,6 +140,11 @@ public abstract class BaseStatementHandler implements StatementHandler {
     StatementUtil.applyTransactionTimeout(stmt, queryTimeout, transactionTimeout);
   }
 
+  /**
+   * 查询行数
+   * @param stmt
+   * @throws SQLException
+   */
   protected void setFetchSize(Statement stmt) throws SQLException {
     Integer fetchSize = mappedStatement.getFetchSize();
     if (fetchSize != null) {
@@ -125,6 +157,10 @@ public abstract class BaseStatementHandler implements StatementHandler {
     }
   }
 
+  /**
+   * 关闭 statement
+   * @param statement
+   */
   protected void closeStatement(Statement statement) {
     try {
       if (statement != null) {
@@ -135,9 +171,15 @@ public abstract class BaseStatementHandler implements StatementHandler {
     }
   }
 
+  /**
+   * 获得自增主键
+   * @param parameter
+   */
   protected void generateKeys(Object parameter) {
+    // 获得keyGenerator 对象
     KeyGenerator keyGenerator = mappedStatement.getKeyGenerator();
     ErrorContext.instance().store();
+    // 前置处理，创建自增编号到 parameter 中
     keyGenerator.processBefore(executor, mappedStatement, null, parameter);
     ErrorContext.instance().recall();
   }

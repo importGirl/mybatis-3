@@ -131,7 +131,7 @@ public class MapperBuilderAssistant extends BaseBuilder {
       boolean blocking,
       Properties props) {
     // 创建 cache 对象
-    Cache cache = new CacheBuilder(currentNamespace)
+    Cache cache = new CacheBuilder(currentNamespace)  // 这里Cache回和namespace 进行绑定
         .implementation(valueOrDefault(typeClass, PerpetualCache.class))
         .addDecorator(valueOrDefault(evictionClass, LruCache.class))
         .clearInterval(flushInterval)

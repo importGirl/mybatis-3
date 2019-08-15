@@ -15,14 +15,6 @@
  */
 package org.apache.ibatis.executor;
 
-import java.sql.BatchUpdateException;
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
 import org.apache.ibatis.cursor.Cursor;
 import org.apache.ibatis.executor.keygen.Jdbc3KeyGenerator;
 import org.apache.ibatis.executor.keygen.KeyGenerator;
@@ -35,7 +27,18 @@ import org.apache.ibatis.session.ResultHandler;
 import org.apache.ibatis.session.RowBounds;
 import org.apache.ibatis.transaction.Transaction;
 
+import java.sql.BatchUpdateException;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 /**
+ * 支持批量的执行器
+ * - jdbc批处理只支持（update、insert、delete),不支持select
+ * - prepareStatement： 减少编译次数（sql相同， 参数不同只编译一次），防止sql注入；
  * @author Jeff Butler
  */
 public class BatchExecutor extends BaseExecutor {
@@ -58,6 +61,7 @@ public class BatchExecutor extends BaseExecutor {
     final BoundSql boundSql = handler.getBoundSql();
     final String sql = boundSql.getSql();
     final Statement stmt;
+    // 执行
     if (sql.equals(currentSql) && ms.equals(currentStatement)) {
       int last = statementList.size() - 1;
       stmt = statementList.get(last);
@@ -107,6 +111,12 @@ public class BatchExecutor extends BaseExecutor {
     return handler.queryCursor(stmt);
   }
 
+  /**
+   *
+   * @param isRollback
+   * @return
+   * @throws SQLException
+   */
   @Override
   public List<BatchResult> doFlushStatements(boolean isRollback) throws SQLException {
     try {
@@ -119,6 +129,7 @@ public class BatchExecutor extends BaseExecutor {
         applyTransactionTimeout(stmt);
         BatchResult batchResult = batchResultList.get(i);
         try {
+          // 保存执行结果
           batchResult.setUpdateCounts(stmt.executeBatch());
           MappedStatement ms = batchResult.getMappedStatement();
           List<Object> parameterObjects = batchResult.getParameterObjects();
@@ -132,6 +143,7 @@ public class BatchExecutor extends BaseExecutor {
             }
           }
           // Close statement to close cursor #1109
+          // 关闭连接
           closeStatement(stmt);
         } catch (BatchUpdateException e) {
           StringBuilder message = new StringBuilder();

@@ -16,6 +16,9 @@
 package org.apache.ibatis.executor;
 
 /**
+ * 上下文错误信息
+ * - 负责记录错误日志
+ * - toString() 方法输出本地线程保存的错误信息
  * @author Clinton Begin
  */
 public class ErrorContext {
@@ -57,6 +60,7 @@ public class ErrorContext {
     }
     return LOCAL.get();
   }
+
 
   public ErrorContext resource(String resource) {
     this.resource = resource;

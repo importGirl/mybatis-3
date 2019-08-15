@@ -15,14 +15,6 @@
  */
 package org.apache.ibatis.executor;
 
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import org.apache.ibatis.cursor.Cursor;
 import org.apache.ibatis.executor.statement.StatementHandler;
 import org.apache.ibatis.logging.Log;
@@ -33,7 +25,17 @@ import org.apache.ibatis.session.ResultHandler;
 import org.apache.ibatis.session.RowBounds;
 import org.apache.ibatis.transaction.Transaction;
 
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 /**
+ * 重复使用的执行器
+ * 差异： 执行完操作不会关闭 statement; 总不能一直不关把， flushStatement() 进行关闭
  * @author Clinton Begin
  */
 public class ReuseExecutor extends BaseExecutor {
@@ -70,25 +72,40 @@ public class ReuseExecutor extends BaseExecutor {
 
   @Override
   public List<BatchResult> doFlushStatements(boolean isRollback) {
+    // 关闭
     for (Statement stmt : statementMap.values()) {
       closeStatement(stmt);
     }
+    // 清除
     statementMap.clear();
     return Collections.emptyList();
   }
 
+  /**
+   * 预占符语句
+   * @param handler
+   * @param statementLog
+   * @return
+   * @throws SQLException
+   */
   private Statement prepareStatement(StatementHandler handler, Log statementLog) throws SQLException {
     Statement stmt;
+    // sql
     BoundSql boundSql = handler.getBoundSql();
     String sql = boundSql.getSql();
+    // 有缓存Statement
     if (hasStatementFor(sql)) {
+      // 申请一个有超时时间的事务
       stmt = getStatement(sql);
       applyTransactionTimeout(stmt);
-    } else {
+    }
+    // 没有缓存， 获取连接再缓存
+    else {
       Connection connection = getConnection(statementLog);
       stmt = handler.prepare(connection, transaction.getTimeout());
       putStatement(sql, stmt);
     }
+    // todo
     handler.parameterize(stmt);
     return stmt;
   }

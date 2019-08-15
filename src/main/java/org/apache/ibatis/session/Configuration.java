@@ -102,6 +102,7 @@ public class Configuration {
   protected JdbcType jdbcTypeForNull = JdbcType.OTHER;
   protected Set<String> lazyLoadTriggerMethods = new HashSet<>(Arrays.asList("equals", "clone", "hashCode", "toString"));
   protected Integer defaultStatementTimeout;
+  // 默认查询行数
   protected Integer defaultFetchSize;
   protected ExecutorType defaultExecutorType = ExecutorType.SIMPLE;
   protected AutoMappingBehavior autoMappingBehavior = AutoMappingBehavior.PARTIAL;
@@ -137,7 +138,7 @@ public class Configuration {
   protected final Map<String, MappedStatement> mappedStatements = new StrictMap<MappedStatement>("Mapped Statements collection")
       .conflictMessageProducer((savedValue, targetValue) ->
           ". please check " + savedValue.getResource() + " and " + targetValue.getResource());
-  // Mapper 缓存映射 key: namespace+class value: Cache 对象
+  // Mapper 二级缓存映射 key: namespace+class value: Cache 对象
   protected final Map<String, Cache> caches = new StrictMap<>("Caches collection");
   protected final Map<String, ResultMap> resultMaps = new StrictMap<>("Result Maps collection");
   protected final Map<String, ParameterMap> parameterMaps = new StrictMap<>("Parameter Maps collection");
@@ -553,7 +554,9 @@ public class Configuration {
   }
 
   public ParameterHandler newParameterHandler(MappedStatement mappedStatement, Object parameterObject, BoundSql boundSql) {
+    // 创建parameterHandler
     ParameterHandler parameterHandler = mappedStatement.getLang().createParameterHandler(mappedStatement, parameterObject, boundSql);
+    // 应用插件
     parameterHandler = (ParameterHandler) interceptorChain.pluginAll(parameterHandler);
     return parameterHandler;
   }
@@ -571,24 +574,38 @@ public class Configuration {
     return statementHandler;
   }
 
+  /**
+   * 创建执行器
+   * - mybatis-config.xml 中设置执行器类型
+   * @param transaction
+   * @return
+   */
   public Executor newExecutor(Transaction transaction) {
     return newExecutor(transaction, defaultExecutorType);
   }
 
   public Executor newExecutor(Transaction transaction, ExecutorType executorType) {
+
     executorType = executorType == null ? defaultExecutorType : executorType;
     executorType = executorType == null ? ExecutorType.SIMPLE : executorType;
     Executor executor;
+    // 批量
     if (ExecutorType.BATCH == executorType) {
       executor = new BatchExecutor(this, transaction);
-    } else if (ExecutorType.REUSE == executorType) {
+    }
+    // 重复使用
+    else if (ExecutorType.REUSE == executorType) {
       executor = new ReuseExecutor(this, transaction);
-    } else {
+    }
+    // 简单
+    else {
       executor = new SimpleExecutor(this, transaction);
     }
+    // mapper.xml 是否开启缓存
     if (cacheEnabled) {
       executor = new CachingExecutor(executor);
     }
+    // 执行插件
     executor = (Executor) interceptorChain.pluginAll(executor);
     return executor;
   }

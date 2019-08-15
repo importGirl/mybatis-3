@@ -37,12 +37,15 @@ public final class MappedStatement {
   private String resource;
   private Configuration configuration;
   private String id;
+  // 查询行数
   private Integer fetchSize;
   private Integer timeout;
   private StatementType statementType;
+  // 查询结果类型; curor、敏感、不敏感
   private ResultSetType resultSetType;
   // 最终执行的sql字符串
   private SqlSource sqlSource;
+  // 二级缓存
   private Cache cache;
   private ParameterMap parameterMap;
   private List<ResultMap> resultMaps;
@@ -50,9 +53,11 @@ public final class MappedStatement {
   private boolean useCache;
   private boolean resultOrdered;
   private SqlCommandType sqlCommandType;
+
   private KeyGenerator keyGenerator;
   private String[] keyProperties;
   private String[] keyColumns;
+
   private boolean hasNestedResultMaps;
   private String databaseId;
   private Log statementLog;
@@ -296,6 +301,7 @@ public final class MappedStatement {
   }
 
   public BoundSql getBoundSql(Object parameterObject) {
+    //
     BoundSql boundSql = sqlSource.getBoundSql(parameterObject);
     List<ParameterMapping> parameterMappings = boundSql.getParameterMappings();
     if (parameterMappings == null || parameterMappings.isEmpty()) {

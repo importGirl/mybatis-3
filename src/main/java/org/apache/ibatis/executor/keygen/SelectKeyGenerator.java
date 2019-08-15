@@ -15,9 +15,6 @@
  */
 package org.apache.ibatis.executor.keygen;
 
-import java.sql.Statement;
-import java.util.List;
-
 import org.apache.ibatis.executor.Executor;
 import org.apache.ibatis.executor.ExecutorException;
 import org.apache.ibatis.mapping.MappedStatement;
@@ -26,6 +23,9 @@ import org.apache.ibatis.session.Configuration;
 import org.apache.ibatis.session.ExecutorType;
 import org.apache.ibatis.session.RowBounds;
 
+import java.sql.Statement;
+import java.util.List;
+
 /**
  * @author Clinton Begin
  * @author Jeff Butler
@@ -33,7 +33,9 @@ import org.apache.ibatis.session.RowBounds;
 public class SelectKeyGenerator implements KeyGenerator {
 
   public static final String SELECT_KEY_SUFFIX = "!selectKey";
+  // 是否是执行之前
   private final boolean executeBefore;
+
   private final MappedStatement keyStatement;
 
   public SelectKeyGenerator(MappedStatement keyStatement, boolean executeBefore) {
@@ -55,6 +57,12 @@ public class SelectKeyGenerator implements KeyGenerator {
     }
   }
 
+  /**
+   * 处理 主键key
+   * @param executor
+   * @param ms
+   * @param parameter
+   */
   private void processGeneratedKeys(Executor executor, MappedStatement ms, Object parameter) {
     try {
       if (parameter != null && keyStatement != null && keyStatement.getKeyProperties() != null) {
@@ -65,22 +73,30 @@ public class SelectKeyGenerator implements KeyGenerator {
           // Do not close keyExecutor.
           // The transaction will be closed by parent executor.
           Executor keyExecutor = configuration.newExecutor(executor.getTransaction(), ExecutorType.SIMPLE);
+          // 查询
           List<Object> values = keyExecutor.query(keyStatement, parameter, RowBounds.DEFAULT, Executor.NO_RESULT_HANDLER);
           if (values.size() == 0) {
             throw new ExecutorException("SelectKey returned no data.");
           } else if (values.size() > 1) {
             throw new ExecutorException("SelectKey returned more than one value.");
-          } else {
+          }
+          // 只有一个结果
+          else {
+            // 结果元对象
             MetaObject metaResult = configuration.newMetaObject(values.get(0));
             if (keyProperties.length == 1) {
+              // 是否有getter方法
               if (metaResult.hasGetter(keyProperties[0])) {
+                // 设置属性
                 setValue(metaParam, keyProperties[0], metaResult.getValue(keyProperties[0]));
               } else {
                 // no getter for the property - maybe just a single value object
                 // so try that
+                // 设置属性
                 setValue(metaParam, keyProperties[0], values.get(0));
               }
             } else {
+              // 处理多个属性
               handleMultipleProperties(keyProperties, metaParam, metaResult);
             }
           }
@@ -93,16 +109,24 @@ public class SelectKeyGenerator implements KeyGenerator {
     }
   }
 
+  /**
+   * 处理多个属性
+   * @param keyProperties
+   * @param metaParam
+   * @param metaResult
+   */
   private void handleMultipleProperties(String[] keyProperties,
       MetaObject metaParam, MetaObject metaResult) {
     String[] keyColumns = keyStatement.getKeyColumns();
-
+    // 遍历设置
     if (keyColumns == null || keyColumns.length == 0) {
       // no key columns specified, just use the property names
       for (String keyProperty : keyProperties) {
         setValue(metaParam, keyProperty, metaResult.getValue(keyProperty));
       }
-    } else {
+    }
+    // 列值
+    else {
       if (keyColumns.length != keyProperties.length) {
         throw new ExecutorException("If SelectKey has key columns, the number must match the number of key properties.");
       }
@@ -112,6 +136,12 @@ public class SelectKeyGenerator implements KeyGenerator {
     }
   }
 
+  /**
+   * 设置属性
+   * @param metaParam
+   * @param property
+   * @param value
+   */
   private void setValue(MetaObject metaParam, String property, Object value) {
     if (metaParam.hasSetter(property)) {
       metaParam.setValue(property, value);

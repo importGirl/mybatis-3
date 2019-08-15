@@ -62,7 +62,7 @@ public class TransactionalCacheManager {
   /**
    * 创建并返回
    * computeIfAbsent（）；方法支持并发操作，线程安全； cas
-   * @param cache
+   * @param cache   ms.getCache() 二级缓存
    * @return
    */
   private TransactionalCache getTransactionalCache(Cache cache) {
